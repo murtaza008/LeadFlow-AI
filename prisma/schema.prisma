@@ -1,0 +1,185 @@
+// LeadFlow AI data model.
+// Ported from the Supabase/Postgres schema in `New folder/supabase/migrations/*.sql`,
+// adapted for Prisma + Neon Postgres. Tenant isolation (Supabase RLS in the source)
+// is enforced in the app layer instead — see lib/workspace.ts.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../lib/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum WorkspacePlan {
+  FREE
+  TEAM
+  AGENCY
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  WON
+  LOST
+}
+
+enum LeadPriority {
+  HOT
+  WARM
+  COLD
+}
+
+enum ActivityType {
+  NOTE
+  STATUS_CHANGE
+  AI_SCORE
+  EMAIL
+  CALL
+}
+
+enum FollowUpType {
+  EMAIL
+  CALL
+  TASK
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  displayName  String?
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships       WorkspaceMember[]
+  createdWorkspaces Workspace[]       @relation("WorkspaceCreator")
+  createdLeads      Lead[]            @relation("LeadCreator")
+  activities        Activity[]        @relation("ActivityCreator")
+  followUps         FollowUp[]        @relation("FollowUpCreator")
+  sentInvites       WorkspaceInvite[] @relation("InviteSender")
+}
+
+model Workspace {
+  id                   String        @id @default(uuid())
+  name                 String
+  slug                 String        @unique
+  plan                 WorkspacePlan @default(FREE)
+  brandColor           String        @default("#00c27c")
+  stripeCustomerId     String?       @unique
+  stripeSubscriptionId String?       @unique
+  createdById          String
+  createdBy            User          @relation("WorkspaceCreator", fields: [createdById], references: [id])
+  createdAt            DateTime      @default(now())
+
+  members    WorkspaceMember[]
+  leads      Lead[]
+  activities Activity[]
+  followUps  FollowUp[]
+  invites    WorkspaceInvite[]
+}
+
+model WorkspaceMember {
+  id          String    @id @default(uuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        Role      @default(MEMBER)
+  createdAt   DateTime  @default(now())
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+}
+
+model WorkspaceInvite {
+  id          String    @id @default(uuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  email       String
+  role        Role      @default(MEMBER)
+  token       String    @unique @default(cuid())
+  invitedById String
+  invitedBy   User      @relation("InviteSender", fields: [invitedById], references: [id])
+  acceptedAt  DateTime?
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([workspaceId])
+}
+
+model Lead {
+  id          String       @id @default(uuid())
+  workspaceId String
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name        String
+  company     String?
+  title       String?
+  email       String?
+  phone       String?
+  source      String?
+  value       Decimal      @default(0) @db.Decimal(12, 2)
+  score       Int          @default(0)
+  priority    LeadPriority @default(COLD)
+  status      LeadStatus   @default(NEW)
+  aiSummary   String?
+  aiReasons   Json         @default("[]")
+  notes       String?
+  scoredAt    DateTime?
+  createdById String
+  createdBy   User         @relation("LeadCreator", fields: [createdById], references: [id])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  activities Activity[]
+  followUps  FollowUp[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+}
+
+model Activity {
+  id          String       @id @default(uuid())
+  leadId      String
+  lead        Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  workspaceId String
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  type        ActivityType
+  body        String
+  createdById String?
+  createdBy   User?        @relation("ActivityCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime     @default(now())
+
+  @@index([leadId, createdAt])
+  @@index([workspaceId])
+}
+
+model FollowUp {
+  id          String       @id @default(uuid())
+  leadId      String
+  lead        Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  workspaceId String
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  title       String
+  type        FollowUpType @default(TASK)
+  dueAt       DateTime
+  done        Boolean      @default(false)
+  createdById String?
+  createdBy   User?        @relation("FollowUpCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([workspaceId, dueAt])
+  @@index([leadId])
+}

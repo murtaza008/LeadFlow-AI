@@ -1,26 +1,205 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+ * LeadFlow AI Design System
+ * "Growth & Mint" — dark growth/storm marketing surfaces, light card-based
+ * dashboard, mint-green as the primary growth signal, ember/amber for
+ * urgency (hot leads, overdue follow-ups).
+ */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Brand tokens */
+  --color-growth: #1a1f16;
+  --color-storm: #2e3440;
+  --color-leaf: #f5f7f0;
+  --color-paper: #ffffff;
+  --color-mint: #00c27c;
+  --color-mint-dim: #e0f7ee;
+  --color-ember: #ff6b35;
+  --color-ember-dim: #fff0e8;
+  --color-fog: #9ba8a3;
+  --color-graphite: #4a5568;
+  --color-border-dark: #3d4a42;
+  --color-border-light: #dde4dc;
+  --color-amber: #e6a817;
+  --color-danger: #e2523f;
+
+  --color-chart-1: var(--color-mint);
+  --color-chart-2: var(--color-ember);
+  --color-chart-3: var(--color-amber);
+  --color-chart-4: var(--color-graphite);
+  --color-chart-5: var(--color-fog);
+
+  --font-display: var(--font-jakarta);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  --ease-settle: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --radius: 0.625rem;
+  --background: #f5f7f0;
+  --foreground: #1a1f16;
+  --card: #ffffff;
+  --card-foreground: #1a1f16;
+  --popover: #ffffff;
+  --popover-foreground: #1a1f16;
+  --primary: #00c27c;
+  --primary-foreground: #0a1410;
+  --secondary: #e0f7ee;
+  --secondary-foreground: #1a1f16;
+  --muted: #eef1e9;
+  --muted-foreground: #4a5568;
+  --accent: #fff0e8;
+  --accent-foreground: #1a1f16;
+  --destructive: #e2523f;
+  --destructive-foreground: #ffffff;
+  --border: #dde4dc;
+  --input: #dde4dc;
+  --ring: #00c27c;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    font-family: var(--font-display);
+  }
+  ::selection {
+    background-color: color-mix(in oklab, var(--color-mint) 30%, transparent);
+  }
+  *:focus-visible {
+    outline: 2px solid var(--color-mint);
+    outline-offset: 2px;
+    border-radius: 2px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+@utility mono-data {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+@utility input-field {
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-card);
+  padding: 0.55rem 0.75rem;
+  font-size: 14px;
+  color: var(--color-foreground);
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:focus {
+    border-color: var(--color-mint);
+  }
+}
+
+@keyframes score-settle {
+  0% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes soft-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@keyframes rise-in {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-score-settle {
+  animation: score-settle 0.45s var(--ease-settle) both;
+}
+.animate-soft-pulse {
+  animation: soft-pulse 1.4s ease-in-out infinite;
+}
+.animate-rise-in {
+  animation: rise-in 0.4s var(--ease-out-expo) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
