@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireUserId } from "@/lib/session";
+import { requireSessionUser } from "@/lib/session";
+import { claimDemoAiCall } from "@/lib/demo-limits";
 import { getCurrentWorkspace, ForbiddenError } from "@/lib/workspace";
 import { handleApiError } from "@/lib/handle-error";
 import { scoreLead, AiNotConfiguredError } from "@/lib/gemini";
@@ -9,12 +10,14 @@ import { serializeLead } from "@/lib/serialize";
 export async function POST(_request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
-    const userId = await requireUserId();
+    const user = await requireSessionUser();
+    const userId = user.id;
     const workspace = await getCurrentWorkspace(userId);
     if (!workspace) throw new ForbiddenError("No workspace yet.");
 
     const lead = await prisma.lead.findFirst({ where: { id, workspaceId: workspace.id } });
     if (!lead) throw new ForbiddenError("Lead not found in this workspace.");
+    if (user.isDemo) await claimDemoAiCall();
 
     const result = await scoreLead({
       name: lead.name,
@@ -37,6 +40,7 @@ export async function POST(_request: Request, context: { params: Promise<{ id: s
           aiReasons: result.reasons,
           scoredAt: new Date(),
         },
+        include: { assignedTo: { select: { id: true, displayName: true, email: true } } },
       }),
       prisma.activity.create({
         data: {

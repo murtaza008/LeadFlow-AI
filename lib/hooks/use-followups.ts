@@ -34,6 +34,9 @@ export function useToggleFollowUp() {
       if (!res.ok) throw new Error("Could not update follow-up");
       return res.json();
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["followups"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["followups"] });
+      qc.invalidateQueries({ queryKey: ["leads"] });
+    },
   });
 }

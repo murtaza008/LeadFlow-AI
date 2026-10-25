@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireUserId } from "@/lib/session";
+import { forbidInDemo, requireSessionUser, requireUserId } from "@/lib/session";
 import { requireWorkspaceMember, requireWorkspaceRole } from "@/lib/workspace";
 import { handleApiError } from "@/lib/handle-error";
 
@@ -29,8 +29,10 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id: workspaceId } = await context.params;
-    const userId = await requireUserId();
+    const user = await requireSessionUser();
+    const userId = user.id;
     await requireWorkspaceRole(userId, workspaceId, ["OWNER", "ADMIN"]);
+    forbidInDemo(user, "Inviting team members");
 
     const { email, role } = CreateInviteInput.parse(await request.json().catch(() => null));
     const invite = await prisma.workspaceInvite.create({

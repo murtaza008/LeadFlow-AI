@@ -106,6 +106,7 @@ export default function LeadsPage() {
                   <TableHead>Lead</TableHead>
                   <TableHead>Priority</TableHead>
                   <TableHead>Stage</TableHead>
+                  <TableHead className="hidden md:table-cell">Owner</TableHead>
                   <TableHead className="text-right">Value</TableHead>
                   <TableHead className="text-right">Score</TableHead>
                 </TableRow>
@@ -147,6 +148,9 @@ function LeadRow({ lead }: { lead: Lead }) {
         </span>
       </TableCell>
       <TableCell className="text-[13px] text-muted-foreground">{statusLabel[lead.status]}</TableCell>
+      <TableCell className="hidden text-[13px] text-muted-foreground md:table-cell">
+        {lead.assignedTo ? (lead.assignedTo.displayName ?? lead.assignedTo.email) : "—"}
+      </TableCell>
       <TableCell className="mono-data text-right text-[13px] font-600 text-foreground">
         {formatCurrency(lead.value)}
       </TableCell>

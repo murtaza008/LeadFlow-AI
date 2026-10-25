@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireUserId } from "@/lib/session";
+import { forbidInDemo, requireSessionUser } from "@/lib/session";
 import { requireWorkspaceRole } from "@/lib/workspace";
 import { handleApiError } from "@/lib/handle-error";
 import { getStripe, isStripeConfigured, PLAN_PRICE_ENV } from "@/lib/stripe";
@@ -13,7 +13,9 @@ const CheckoutInput = z.object({
 
 export async function POST(request: Request) {
   try {
-    const userId = await requireUserId();
+    const user = await requireSessionUser();
+    forbidInDemo(user, "Stripe checkout and billing changes");
+    const userId = user.id;
     const { workspaceId, plan } = CheckoutInput.parse(await request.json().catch(() => null));
     await requireWorkspaceRole(userId, workspaceId, ["OWNER", "ADMIN"]);
 

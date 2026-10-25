@@ -57,7 +57,8 @@ export const ModelName = {
   WorkspaceInvite: 'WorkspaceInvite',
   Lead: 'Lead',
   Activity: 'Activity',
-  FollowUp: 'FollowUp'
+  FollowUp: 'FollowUp',
+  DemoUsage: 'DemoUsage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -98,7 +99,9 @@ export const WorkspaceScalarFieldEnum = {
   stripeCustomerId: 'stripeCustomerId',
   stripeSubscriptionId: 'stripeSubscriptionId',
   createdById: 'createdById',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  focusPicks: 'focusPicks',
+  focusAt: 'focusAt'
 } as const
 
 export type WorkspaceScalarFieldEnum = (typeof WorkspaceScalarFieldEnum)[keyof typeof WorkspaceScalarFieldEnum]
@@ -146,9 +149,13 @@ export const LeadScalarFieldEnum = {
   status: 'status',
   aiSummary: 'aiSummary',
   aiReasons: 'aiReasons',
+  aiInsight: 'aiInsight',
+  aiNextAction: 'aiNextAction',
+  insightAt: 'insightAt',
   notes: 'notes',
   scoredAt: 'scoredAt',
   createdById: 'createdById',
+  assignedToId: 'assignedToId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -185,12 +192,28 @@ export const FollowUpScalarFieldEnum = {
 export type FollowUpScalarFieldEnum = (typeof FollowUpScalarFieldEnum)[keyof typeof FollowUpScalarFieldEnum]
 
 
+export const DemoUsageScalarFieldEnum = {
+  window: 'window',
+  aiCalls: 'aiCalls'
+} as const
+
+export type DemoUsageScalarFieldEnum = (typeof DemoUsageScalarFieldEnum)[keyof typeof DemoUsageScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const JsonNullValueInput = {

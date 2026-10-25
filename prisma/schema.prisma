@@ -65,6 +65,7 @@ model User {
   memberships       WorkspaceMember[]
   createdWorkspaces Workspace[]       @relation("WorkspaceCreator")
   createdLeads      Lead[]            @relation("LeadCreator")
+  assignedLeads     Lead[]            @relation("LeadAssignee")
   activities        Activity[]        @relation("ActivityCreator")
   followUps         FollowUp[]        @relation("FollowUpCreator")
   sentInvites       WorkspaceInvite[] @relation("InviteSender")
@@ -81,6 +82,10 @@ model Workspace {
   createdById          String
   createdBy            User          @relation("WorkspaceCreator", fields: [createdById], references: [id])
   createdAt            DateTime      @default(now())
+  // Last AI "focus today" picks ([{ leadId, reason }]), cached so the dashboard
+  // doesn't call Gemini on every visit.
+  focusPicks           Json?
+  focusAt              DateTime?
 
   members    WorkspaceMember[]
   leads      Lead[]
@@ -120,27 +125,32 @@ model WorkspaceInvite {
 }
 
 model Lead {
-  id          String       @id @default(uuid())
-  workspaceId String
-  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  name        String
-  company     String?
-  title       String?
-  email       String?
-  phone       String?
-  source      String?
-  value       Decimal      @default(0) @db.Decimal(12, 2)
-  score       Int          @default(0)
-  priority    LeadPriority @default(COLD)
-  status      LeadStatus   @default(NEW)
-  aiSummary   String?
-  aiReasons   Json         @default("[]")
-  notes       String?
-  scoredAt    DateTime?
-  createdById String
-  createdBy   User         @relation("LeadCreator", fields: [createdById], references: [id])
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id           String       @id @default(uuid())
+  workspaceId  String
+  workspace    Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name         String
+  company      String?
+  title        String?
+  email        String?
+  phone        String?
+  source       String?
+  value        Decimal      @default(0) @db.Decimal(12, 2)
+  score        Int          @default(0)
+  priority     LeadPriority @default(COLD)
+  status       LeadStatus   @default(NEW)
+  aiSummary    String?
+  aiReasons    Json         @default("[]")
+  aiInsight    String?
+  aiNextAction String?
+  insightAt    DateTime?
+  notes        String?
+  scoredAt     DateTime?
+  createdById  String
+  createdBy    User         @relation("LeadCreator", fields: [createdById], references: [id])
+  assignedToId String?
+  assignedTo   User?        @relation("LeadAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   activities Activity[]
   followUps  FollowUp[]
@@ -182,4 +192,11 @@ model FollowUp {
 
   @@index([workspaceId, dueAt])
   @@index([leadId])
+}
+
+// Shared hourly budget of live AI calls for the public demo account, so
+// visitors can't burn through the Gemini free tier. One row per UTC hour.
+model DemoUsage {
+  window  String @id // YYYY-MM-DDTHH, UTC
+  aiCalls Int    @default(0)
 }

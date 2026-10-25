@@ -9,7 +9,8 @@
 ![Neon](https://img.shields.io/badge/Neon-Postgres-00E599?style=flat-square&logo=postgresql&logoColor=white)
 ![Gemini](https://img.shields.io/badge/AI-Google%20Gemini-8E75B2?style=flat-square&logo=googlegemini&logoColor=white)
 
-**Live demo:** https://lead-flow-ai-six.vercel.app/ — sign up with any email, name a workspace, add a lead.
+**Live demo:** https://lead-flow-ai-six.vercel.app/ — click **Try demo** to explore a fully seeded
+workspace without signing up, or sign up with any email to start your own.
 
 LeadFlow AI is a multi-tenant sales CRM. Add leads, and Google Gemini scores each
 one on how likely it is to close, explains why, writes a next-best-action from the
@@ -29,6 +30,7 @@ in demo mode).
 - [Tech stack](#tech-stack)
 - [Getting started](#getting-started)
 - [Environment variables](#environment-variables)
+- [Public demo mode](#public-demo-mode)
 - [Seeding a demo pipeline](#seeding-a-demo-pipeline)
 - [How the AI features work](#how-the-ai-features-work)
 - [Automated follow-ups](#automated-follow-ups)
@@ -38,7 +40,6 @@ in demo mode).
 - [Project structure](#project-structure)
 - [Deploying to Vercel](#deploying-to-vercel)
 - [Known limitations](#known-limitations)
-- [Author](#author)
 
 ---
 
@@ -48,7 +49,7 @@ in demo mode).
 | --- | --- |
 | **Dashboard** | Stat cards (hot leads, open pipeline value, average score, win rate), an AI **"Focus today"** digest, and a priority-leads list |
 | **Leads** | Searchable lead table with stage filter; add leads (name, company, title, email, phone, source, deal value, notes) |
-| **Lead profile** | AI score badge with priority (Hot / Warm / Cold) and reasons, **Score / Re-score with AI**, AI **customer insight + next action**, stage selector, activity timeline, log notes / emails / calls, linked follow-ups, delete |
+| **Lead profile** | AI score badge with priority (Hot / Warm / Cold) and reasons, **Score / Re-score with AI**, AI **customer insight + next action**, edit details and owner, stage selector, activity timeline, log notes / emails / calls, linked follow-ups, delete |
 | **Pipeline** | Drag-and-drop kanban (`@dnd-kit`) across New → Contacted → Qualified → Won / Lost; moving a card triggers automations |
 | **Follow-ups** | Every follow-up in the workspace grouped into Overdue / Upcoming / Done, tick to complete |
 | **Analytics** | Stage funnel (count and value), lead-source mix, score distribution, 8-week created-vs-won trend, totals and win rate (Recharts) |
@@ -85,8 +86,8 @@ in demo mode).
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/murtaza008/LeadFlow-AI.git
-cd LeadFlow-AI
+git clone <this-repo-url> leadflow-ai
+cd leadflow-ai
 npm install        # also runs `prisma generate` (postinstall)
 ```
 
@@ -159,9 +160,42 @@ and add your first lead. Open the lead and click **Score with AI** to run Gemini
 | `STRIPE_SECRET_KEY` | no | Turns on real Stripe Checkout; leave empty for demo billing mode |
 | `STRIPE_WEBHOOK_SECRET` | with Stripe | Verifies `/api/webhooks/stripe` signatures |
 | `STRIPE_PRICE_TEAM` / `STRIPE_PRICE_AGENCY` | with Stripe | Recurring Price IDs for the two paid plans |
-| `SEED_USER_EMAIL` | no | Default account for the seed script |
+| `DEMO_PASSWORD` | for the demo | Password of the shared demo account. A long random string; "Try demo" uses it server-side, it never reaches the browser |
+| `CRON_SECRET` | for the demo | Protects `/api/cron/demo-reset`; Vercel Cron sends it automatically |
+| `SEED_USER_EMAIL` | no | Account for `scripts/seed-leads.ts` if none is passed on the command line |
 
 ---
+
+## Public demo mode
+
+Visitors can click **Try demo** (landing page hero or the sign-in page) to land in a
+fully populated workspace, **Northwind Digital**, a fictional B2B agency. Nobody types
+credentials: `POST /api/demo/login` signs in to the shared `demo@leadflow.demo`
+account on the server with `DEMO_PASSWORD`. A banner reminds visitors that the data
+resets daily.
+
+**What's seeded** ([`lib/demo-data.ts`](lib/demo-data.ts), [`lib/demo-seed.ts`](lib/demo-seed.ts)):
+35 leads across every stage (won and lost included) and five sources, spread over
+90 days; a stored AI score, reasons, insight and next action for every lead; today's
+focus picks; activity timelines; sent and scheduled follow-ups; and two teammates
+(Admin and Member) who own part of the pipeline. The workspace is on the Agency plan,
+so every feature is unlocked. All AI output is stored, so browsing the demo makes no
+Gemini calls. Every name, email (`.example`) and phone number (`555-01xx`) is fictional.
+
+**Seeding and reset.** `npm run seed:demo` builds or rebuilds the demo workspace. It
+only ever writes the demo users, the demo workspace and the demo AI-usage counter,
+and it refuses to run if a demo email or the demo workspace id belongs to a real
+account. Dates are relative to the day it runs, so the data always looks current. A
+Vercel Cron job ([`vercel.json`](vercel.json)) calls `/api/cron/demo-reset` daily at
+00:00 UTC to undo visitors' changes.
+
+**What visitors can and can't do.** Dragging leads through the pipeline, editing lead
+details, adding notes, adding leads and ticking follow-ups all work. Deleting leads,
+inviting teammates, joining or creating other workspaces, changing workspace settings,
+Stripe checkout and the billing portal are blocked server-side with a friendly message
+(`forbidInDemo()` in [`lib/session.ts`](lib/session.ts)). Live AI scoring and insights
+are capped at 10 calls per hour, shared by all demo visitors ([`lib/demo-limits.ts`](lib/demo-limits.ts)).
+Sign-ups with the reserved `leadflow.demo` / `northwind.demo` domains are rejected.
 
 ## Seeding a demo pipeline
 
@@ -192,8 +226,8 @@ retires dated model versions.
 | Feature | Route | Input → output |
 | --- | --- | --- |
 | **Lead scoring** (`scoreLead`) | `POST /api/leads/[id]/score` | Title, company, source, deal value, stage and notes → `score` 0–100, `priority` HOT/WARM/COLD, one-line summary and 2–4 reasons. Saved on the lead and logged to its timeline |
-| **Customer insights** (`generateCustomerInsights`) | `POST /api/leads/[id]/insights` | The lead plus its recent activity → one sharp insight and one concrete next action |
-| **Daily focus** (`recommendDailyFocus`) | `GET /api/recommendations` | The workspace's top 25 open leads → the 3–5 to work today with a reason each. Ids the model returns are checked against the input list, so it cannot invent a lead |
+| **Customer insights** (`generateCustomerInsights`) | `POST /api/leads/[id]/insights` | The lead plus its recent activity → one sharp insight and one concrete next action, saved on the lead |
+| **Daily focus** (`recommendDailyFocus`) | `GET /api/recommendations` | The workspace's top 25 open leads → the 3–5 to work today with a reason each. Ids the model returns are checked against the input list, so it cannot invent a lead. Picks are cached on the workspace for 6 hours |
 
 ---
 
@@ -271,6 +305,8 @@ Rule-based and synchronous, so no queue, worker or cron is needed
 | `POST` | `/api/billing/checkout` | Start Stripe Checkout (or switch plan in demo mode) |
 | `POST` | `/api/billing/portal` | Open the Stripe Customer Portal |
 | `POST` | `/api/webhooks/stripe` | Stripe webhook receiver |
+| `POST` | `/api/demo/login` | "Try demo": sign in to the shared demo account |
+| `GET` | `/api/cron/demo-reset` | Rebuild the demo workspace (Vercel Cron, `CRON_SECRET`) |
 
 ---
 
@@ -302,16 +338,20 @@ lib/
   automations.ts            Follow-up rules
   workspace.ts              Tenant resolution and role checks
   auth.ts, auth.config.ts   Auth.js (full config / edge-safe config)
+  demo.ts, demo-data.ts,     Public demo account: constants, seeded content,
+  demo-seed.ts, demo-limits.ts  reset logic, hourly AI cap
   prisma.ts, stripe.ts, plans.ts, serialize.ts, format.ts, handle-error.ts
   hooks/                    TanStack Query hooks
   generated/prisma/         Generated Prisma client (do not edit)
 prisma/
   schema.prisma             Data model
   migrations/               SQL migrations
+  seed-demo.ts              `npm run seed:demo`: rebuild the demo workspace
 scripts/
   seed-leads.ts             Demo pipeline seeder
   check-seed.ts             Read-only check of seeded data
 proxy.ts                    Route protection
+vercel.json                 Daily demo-reset cron
 ```
 
 ### Data model
@@ -335,10 +375,13 @@ The app deploys to the free Hobby tier with no extra configuration.
    - `NEXTAUTH_SECRET` — a new `openssl rand -base64 32` value
    - `GOOGLE_GENERATIVE_AI_API_KEY` — your Gemini key
    - `NEXT_PUBLIC_APP_URL` — your Vercel URL, e.g. `https://lead-flow-ai-six.vercel.app`
-   - `STRIPE_*` — optional; leave unset for demo billing
+   - `STRIPE_*` — optional; leave unset for demo billing. Only test-mode keys are accepted
+   - `DEMO_PASSWORD`, `CRON_SECRET` — two long random strings, for the public demo
 3. Deploy. `npm run build` runs `prisma migrate deploy` first, so the first deploy
    creates the tables and later deploys apply new migrations.
-4. If you use real Stripe Checkout, add a webhook endpoint at
+4. Run `npm run seed:demo` once against the production database to create the demo
+   workspace (the daily cron keeps it fresh afterwards).
+5. If you use real Stripe Checkout, add a webhook endpoint at
    `https://<your-domain>/api/webhooks/stripe` in the Stripe dashboard and put its
    signing secret in `STRIPE_WEBHOOK_SECRET`.
 
@@ -352,16 +395,7 @@ The app deploys to the free Hobby tier with no extra configuration.
 - **Plan limits are not enforced.** Lead and seat limits on the pricing table are
   plan copy; the API does not cap them.
 - **One workspace per user**, and there is no UI to remove members or change roles yet.
-- **Lead details can't be edited in the UI yet.** The `PATCH /api/leads/[id]` route
-  accepts every field, but the app only uses it to change the stage.
 - **No manual follow-up creation.** Follow-ups come from the automations (and the
   seed script); you can complete them but not add your own yet.
 - **Free-tier Gemini** has per-minute rate limits; scoring many leads quickly can
   return a rate-limit error. Wait a moment and retry.
-
----
-
-## Author
-
-Built by **Murtaza Mazhar** — [GitHub @murtaza008](https://github.com/murtaza008) ·
-[Repository](https://github.com/murtaza008/LeadFlow-AI) · [Live demo](https://lead-flow-ai-six.vercel.app/)

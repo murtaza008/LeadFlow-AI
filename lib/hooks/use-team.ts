@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export type Member = {
   id: string;
+  userId: string;
   role: "OWNER" | "ADMIN" | "MEMBER";
   user: { displayName: string | null; email: string; avatarUrl: string | null };
 };

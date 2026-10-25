@@ -74,3 +74,8 @@ export type Activity = Prisma.ActivityModel
  * 
  */
 export type FollowUp = Prisma.FollowUpModel
+/**
+ * Model DemoUsage
+ * 
+ */
+export type DemoUsage = Prisma.DemoUsageModel

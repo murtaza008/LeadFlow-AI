@@ -9,6 +9,8 @@ export type CurrentWorkspace = {
   plan: "FREE" | "TEAM" | "AGENCY";
   brandColor: string;
   role: "OWNER" | "ADMIN" | "MEMBER";
+  /** The shared public demo account ("Try demo"). */
+  isDemo: boolean;
 };
 
 async function fetchCurrentWorkspace(): Promise<CurrentWorkspace | null> {

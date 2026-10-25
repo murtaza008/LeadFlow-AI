@@ -3,6 +3,7 @@ import { ZodError } from "zod";
 import { UnauthorizedError } from "@/lib/session";
 import { ForbiddenError } from "@/lib/workspace";
 import { Prisma } from "@/lib/generated/prisma/client";
+import { DemoLimitError } from "@/lib/demo";
 
 export function handleApiError(error: unknown) {
   if (error instanceof UnauthorizedError) {
@@ -10,6 +11,9 @@ export function handleApiError(error: unknown) {
   }
   if (error instanceof ForbiddenError) {
     return NextResponse.json({ error: error.message }, { status: 403 });
+  }
+  if (error instanceof DemoLimitError) {
+    return NextResponse.json({ error: error.message, demo: true }, { status: 429 });
   }
   if (error instanceof ZodError) {
     return NextResponse.json(

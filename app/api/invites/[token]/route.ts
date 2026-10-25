@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireUserId } from "@/lib/session";
+import { forbidInDemo, requireSessionUser } from "@/lib/session";
 import { handleApiError } from "@/lib/handle-error";
 
 export async function GET(_request: Request, context: { params: Promise<{ token: string }> }) {
@@ -26,7 +26,9 @@ export async function GET(_request: Request, context: { params: Promise<{ token:
 export async function POST(_request: Request, context: { params: Promise<{ token: string }> }) {
   try {
     const { token } = await context.params;
-    const userId = await requireUserId();
+    const user = await requireSessionUser();
+    forbidInDemo(user, "Joining another workspace");
+    const userId = user.id;
 
     const invite = await prisma.workspaceInvite.findUnique({ where: { token } });
     if (!invite) return NextResponse.json({ error: "Invite not found" }, { status: 404 });

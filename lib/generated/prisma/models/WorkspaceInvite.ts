@@ -513,10 +513,6 @@ export type WorkspaceInviteUncheckedUpdateManyWithoutWorkspaceNestedInput = {
   deleteMany?: Prisma.WorkspaceInviteScalarWhereInput | Prisma.WorkspaceInviteScalarWhereInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type WorkspaceInviteCreateWithoutInvitedByInput = {
   id?: string
   email: string

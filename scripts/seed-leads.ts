@@ -1,9 +1,8 @@
 /**
  * Seeds a demo pipeline into an existing user's workspace.
  *
- *   npx tsx scripts/seed-leads.ts --dry     # show what it would do, write nothing
- *   npx tsx scripts/seed-leads.ts           # actually insert
- *   npx tsx scripts/seed-leads.ts you@mail.com
+ *   npx tsx scripts/seed-leads.ts you@example.com --dry   # show what it would do, write nothing
+ *   npx tsx scripts/seed-leads.ts you@example.com         # actually insert
  *
  * Safe to re-run: leads are matched by name inside the workspace, so an
  * existing lead is skipped rather than duplicated.
@@ -24,8 +23,12 @@ const DRY_RUN = process.argv.includes("--dry");
 const EMAIL = (
   process.argv.slice(2).find((a) => !a.startsWith("--")) ??
   process.env.SEED_USER_EMAIL ??
-  "murtazaaa7798@gmail.com"
+  ""
 ).toLowerCase();
+if (!EMAIL) {
+  console.error("Usage: npx tsx scripts/seed-leads.ts you@example.com [--dry]  (or set SEED_USER_EMAIL)");
+  process.exit(1);
+}
 
 type SeedLead = {
   name: string;

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { PipelineDemo } from "./PipelineDemo";
+import { TryDemoButton } from "@/components/auth/TryDemoButton";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -40,6 +41,10 @@ export function Hero() {
           >
             Start scoring leads
           </Link>
+          <TryDemoButton
+            label="Try demo"
+            className="rounded-md border border-mint/60 px-6 py-3 text-[15px] font-600 text-mint transition-all duration-150 hover:-translate-y-0.5 hover:border-mint hover:bg-mint/10"
+          />
           <a
             href="#product"
             className="rounded-md border border-border-dark px-6 py-3 text-[15px] font-600 text-leaf transition-all duration-150 hover:-translate-y-0.5 hover:border-fog"

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/session";
-import { getCurrentWorkspace, ForbiddenError } from "@/lib/workspace";
+import { getCurrentWorkspace, ForbiddenError, requireWorkspaceMember } from "@/lib/workspace";
 import { handleApiError } from "@/lib/handle-error";
 import { onLeadCreated } from "@/lib/automations";
 import { serializeLead } from "@/lib/serialize";
@@ -16,7 +16,10 @@ const CreateLeadInput = z.object({
   source: z.string().trim().max(60).optional(),
   value: z.number().min(0).max(100_000_000).optional(),
   notes: z.string().trim().max(4000).optional(),
+  assignedToId: z.string().optional(),
 });
+
+const assigneeSelect = { select: { id: true, displayName: true, email: true } } as const;
 
 export async function GET() {
   try {
@@ -27,6 +30,7 @@ export async function GET() {
     const leads = await prisma.lead.findMany({
       where: { workspaceId: workspace.id },
       orderBy: { score: "desc" },
+      include: { assignedTo: assigneeSelect },
     });
     return NextResponse.json(leads.map(serializeLead));
   } catch (error) {
@@ -41,6 +45,8 @@ export async function POST(request: Request) {
     if (!workspace) throw new ForbiddenError("No workspace yet.");
 
     const input = CreateLeadInput.parse(await request.json().catch(() => null));
+    const assignedToId = input.assignedToId || userId;
+    if (assignedToId !== userId) await requireWorkspaceMember(assignedToId, workspace.id);
     const lead = await prisma.lead.create({
       data: {
         workspaceId: workspace.id,
@@ -53,7 +59,9 @@ export async function POST(request: Request) {
         value: input.value ?? 0,
         notes: input.notes || null,
         createdById: userId,
+        assignedToId,
       },
+      include: { assignedTo: assigneeSelect },
     });
 
     await onLeadCreated(lead.id, workspace.id, userId);

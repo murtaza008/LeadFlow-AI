@@ -34,6 +34,7 @@ export type WorkspaceMinAggregateOutputType = {
   stripeSubscriptionId: string | null
   createdById: string | null
   createdAt: Date | null
+  focusAt: Date | null
 }
 
 export type WorkspaceMaxAggregateOutputType = {
@@ -46,6 +47,7 @@ export type WorkspaceMaxAggregateOutputType = {
   stripeSubscriptionId: string | null
   createdById: string | null
   createdAt: Date | null
+  focusAt: Date | null
 }
 
 export type WorkspaceCountAggregateOutputType = {
@@ -58,6 +60,8 @@ export type WorkspaceCountAggregateOutputType = {
   stripeSubscriptionId: number
   createdById: number
   createdAt: number
+  focusPicks: number
+  focusAt: number
   _all: number
 }
 
@@ -72,6 +76,7 @@ export type WorkspaceMinAggregateInputType = {
   stripeSubscriptionId?: true
   createdById?: true
   createdAt?: true
+  focusAt?: true
 }
 
 export type WorkspaceMaxAggregateInputType = {
@@ -84,6 +89,7 @@ export type WorkspaceMaxAggregateInputType = {
   stripeSubscriptionId?: true
   createdById?: true
   createdAt?: true
+  focusAt?: true
 }
 
 export type WorkspaceCountAggregateInputType = {
@@ -96,6 +102,8 @@ export type WorkspaceCountAggregateInputType = {
   stripeSubscriptionId?: true
   createdById?: true
   createdAt?: true
+  focusPicks?: true
+  focusAt?: true
   _all?: true
 }
 
@@ -181,6 +189,8 @@ export type WorkspaceGroupByOutputType = {
   stripeSubscriptionId: string | null
   createdById: string
   createdAt: Date
+  focusPicks: runtime.JsonValue | null
+  focusAt: Date | null
   _count: WorkspaceCountAggregateOutputType | null
   _min: WorkspaceMinAggregateOutputType | null
   _max: WorkspaceMaxAggregateOutputType | null
@@ -214,6 +224,8 @@ export type WorkspaceWhereInput = {
   stripeSubscriptionId?: Prisma.StringNullableFilter<"Workspace"> | string | null
   createdById?: Prisma.StringFilter<"Workspace"> | string
   createdAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string
+  focusPicks?: Prisma.JsonNullableFilter<"Workspace">
+  focusAt?: Prisma.DateTimeNullableFilter<"Workspace"> | Date | string | null
   createdBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   members?: Prisma.WorkspaceMemberListRelationFilter
   leads?: Prisma.LeadListRelationFilter
@@ -232,6 +244,8 @@ export type WorkspaceOrderByWithRelationInput = {
   stripeSubscriptionId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdById?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  focusPicks?: Prisma.SortOrderInput | Prisma.SortOrder
+  focusAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdBy?: Prisma.UserOrderByWithRelationInput
   members?: Prisma.WorkspaceMemberOrderByRelationAggregateInput
   leads?: Prisma.LeadOrderByRelationAggregateInput
@@ -253,6 +267,8 @@ export type WorkspaceWhereUniqueInput = Prisma.AtLeast<{
   brandColor?: Prisma.StringFilter<"Workspace"> | string
   createdById?: Prisma.StringFilter<"Workspace"> | string
   createdAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string
+  focusPicks?: Prisma.JsonNullableFilter<"Workspace">
+  focusAt?: Prisma.DateTimeNullableFilter<"Workspace"> | Date | string | null
   createdBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   members?: Prisma.WorkspaceMemberListRelationFilter
   leads?: Prisma.LeadListRelationFilter
@@ -271,6 +287,8 @@ export type WorkspaceOrderByWithAggregationInput = {
   stripeSubscriptionId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdById?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  focusPicks?: Prisma.SortOrderInput | Prisma.SortOrder
+  focusAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.WorkspaceCountOrderByAggregateInput
   _max?: Prisma.WorkspaceMaxOrderByAggregateInput
   _min?: Prisma.WorkspaceMinOrderByAggregateInput
@@ -289,6 +307,8 @@ export type WorkspaceScalarWhereWithAggregatesInput = {
   stripeSubscriptionId?: Prisma.StringNullableWithAggregatesFilter<"Workspace"> | string | null
   createdById?: Prisma.StringWithAggregatesFilter<"Workspace"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Workspace"> | Date | string
+  focusPicks?: Prisma.JsonNullableWithAggregatesFilter<"Workspace">
+  focusAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Workspace"> | Date | string | null
 }
 
 export type WorkspaceCreateInput = {
@@ -300,6 +320,8 @@ export type WorkspaceCreateInput = {
   stripeCustomerId?: string | null
   stripeSubscriptionId?: string | null
   createdAt?: Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Date | string | null
   createdBy: Prisma.UserCreateNestedOneWithoutCreatedWorkspacesInput
   members?: Prisma.WorkspaceMemberCreateNestedManyWithoutWorkspaceInput
   leads?: Prisma.LeadCreateNestedManyWithoutWorkspaceInput
@@ -318,6 +340,8 @@ export type WorkspaceUncheckedCreateInput = {
   stripeSubscriptionId?: string | null
   createdById: string
   createdAt?: Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Date | string | null
   members?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutWorkspaceInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutWorkspaceInput
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutWorkspaceInput
@@ -334,6 +358,8 @@ export type WorkspaceUpdateInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdBy?: Prisma.UserUpdateOneRequiredWithoutCreatedWorkspacesNestedInput
   members?: Prisma.WorkspaceMemberUpdateManyWithoutWorkspaceNestedInput
   leads?: Prisma.LeadUpdateManyWithoutWorkspaceNestedInput
@@ -352,6 +378,8 @@ export type WorkspaceUncheckedUpdateInput = {
   stripeSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutWorkspaceNestedInput
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutWorkspaceNestedInput
@@ -369,6 +397,8 @@ export type WorkspaceCreateManyInput = {
   stripeSubscriptionId?: string | null
   createdById: string
   createdAt?: Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Date | string | null
 }
 
 export type WorkspaceUpdateManyMutationInput = {
@@ -380,6 +410,8 @@ export type WorkspaceUpdateManyMutationInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type WorkspaceUncheckedUpdateManyInput = {
@@ -392,6 +424,8 @@ export type WorkspaceUncheckedUpdateManyInput = {
   stripeSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type WorkspaceListRelationFilter = {
@@ -414,6 +448,8 @@ export type WorkspaceCountOrderByAggregateInput = {
   stripeSubscriptionId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  focusPicks?: Prisma.SortOrder
+  focusAt?: Prisma.SortOrder
 }
 
 export type WorkspaceMaxOrderByAggregateInput = {
@@ -426,6 +462,7 @@ export type WorkspaceMaxOrderByAggregateInput = {
   stripeSubscriptionId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  focusAt?: Prisma.SortOrder
 }
 
 export type WorkspaceMinOrderByAggregateInput = {
@@ -438,6 +475,7 @@ export type WorkspaceMinOrderByAggregateInput = {
   stripeSubscriptionId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  focusAt?: Prisma.SortOrder
 }
 
 export type WorkspaceScalarRelationFilter = {
@@ -489,6 +527,10 @@ export type WorkspaceUncheckedUpdateManyWithoutCreatedByNestedInput = {
 
 export type EnumWorkspacePlanFieldUpdateOperationsInput = {
   set?: $Enums.WorkspacePlan
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
 }
 
 export type WorkspaceCreateNestedOneWithoutMembersInput = {
@@ -570,6 +612,8 @@ export type WorkspaceCreateWithoutCreatedByInput = {
   stripeCustomerId?: string | null
   stripeSubscriptionId?: string | null
   createdAt?: Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Date | string | null
   members?: Prisma.WorkspaceMemberCreateNestedManyWithoutWorkspaceInput
   leads?: Prisma.LeadCreateNestedManyWithoutWorkspaceInput
   activities?: Prisma.ActivityCreateNestedManyWithoutWorkspaceInput
@@ -586,6 +630,8 @@ export type WorkspaceUncheckedCreateWithoutCreatedByInput = {
   stripeCustomerId?: string | null
   stripeSubscriptionId?: string | null
   createdAt?: Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Date | string | null
   members?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutWorkspaceInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutWorkspaceInput
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutWorkspaceInput
@@ -632,6 +678,8 @@ export type WorkspaceScalarWhereInput = {
   stripeSubscriptionId?: Prisma.StringNullableFilter<"Workspace"> | string | null
   createdById?: Prisma.StringFilter<"Workspace"> | string
   createdAt?: Prisma.DateTimeFilter<"Workspace"> | Date | string
+  focusPicks?: Prisma.JsonNullableFilter<"Workspace">
+  focusAt?: Prisma.DateTimeNullableFilter<"Workspace"> | Date | string | null
 }
 
 export type WorkspaceCreateWithoutMembersInput = {
@@ -643,6 +691,8 @@ export type WorkspaceCreateWithoutMembersInput = {
   stripeCustomerId?: string | null
   stripeSubscriptionId?: string | null
   createdAt?: Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Date | string | null
   createdBy: Prisma.UserCreateNestedOneWithoutCreatedWorkspacesInput
   leads?: Prisma.LeadCreateNestedManyWithoutWorkspaceInput
   activities?: Prisma.ActivityCreateNestedManyWithoutWorkspaceInput
@@ -660,6 +710,8 @@ export type WorkspaceUncheckedCreateWithoutMembersInput = {
   stripeSubscriptionId?: string | null
   createdById: string
   createdAt?: Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Date | string | null
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutWorkspaceInput
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutWorkspaceInput
   followUps?: Prisma.FollowUpUncheckedCreateNestedManyWithoutWorkspaceInput
@@ -691,6 +743,8 @@ export type WorkspaceUpdateWithoutMembersInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdBy?: Prisma.UserUpdateOneRequiredWithoutCreatedWorkspacesNestedInput
   leads?: Prisma.LeadUpdateManyWithoutWorkspaceNestedInput
   activities?: Prisma.ActivityUpdateManyWithoutWorkspaceNestedInput
@@ -708,6 +762,8 @@ export type WorkspaceUncheckedUpdateWithoutMembersInput = {
   stripeSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   leads?: Prisma.LeadUncheckedUpdateManyWithoutWorkspaceNestedInput
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutWorkspaceNestedInput
   followUps?: Prisma.FollowUpUncheckedUpdateManyWithoutWorkspaceNestedInput
@@ -723,6 +779,8 @@ export type WorkspaceCreateWithoutInvitesInput = {
   stripeCustomerId?: string | null
   stripeSubscriptionId?: string | null
   createdAt?: Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Date | string | null
   createdBy: Prisma.UserCreateNestedOneWithoutCreatedWorkspacesInput
   members?: Prisma.WorkspaceMemberCreateNestedManyWithoutWorkspaceInput
   leads?: Prisma.LeadCreateNestedManyWithoutWorkspaceInput
@@ -740,6 +798,8 @@ export type WorkspaceUncheckedCreateWithoutInvitesInput = {
   stripeSubscriptionId?: string | null
   createdById: string
   createdAt?: Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Date | string | null
   members?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutWorkspaceInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutWorkspaceInput
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutWorkspaceInput
@@ -771,6 +831,8 @@ export type WorkspaceUpdateWithoutInvitesInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdBy?: Prisma.UserUpdateOneRequiredWithoutCreatedWorkspacesNestedInput
   members?: Prisma.WorkspaceMemberUpdateManyWithoutWorkspaceNestedInput
   leads?: Prisma.LeadUpdateManyWithoutWorkspaceNestedInput
@@ -788,6 +850,8 @@ export type WorkspaceUncheckedUpdateWithoutInvitesInput = {
   stripeSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutWorkspaceNestedInput
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutWorkspaceNestedInput
@@ -803,6 +867,8 @@ export type WorkspaceCreateWithoutLeadsInput = {
   stripeCustomerId?: string | null
   stripeSubscriptionId?: string | null
   createdAt?: Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Date | string | null
   createdBy: Prisma.UserCreateNestedOneWithoutCreatedWorkspacesInput
   members?: Prisma.WorkspaceMemberCreateNestedManyWithoutWorkspaceInput
   activities?: Prisma.ActivityCreateNestedManyWithoutWorkspaceInput
@@ -820,6 +886,8 @@ export type WorkspaceUncheckedCreateWithoutLeadsInput = {
   stripeSubscriptionId?: string | null
   createdById: string
   createdAt?: Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Date | string | null
   members?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutWorkspaceInput
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutWorkspaceInput
   followUps?: Prisma.FollowUpUncheckedCreateNestedManyWithoutWorkspaceInput
@@ -851,6 +919,8 @@ export type WorkspaceUpdateWithoutLeadsInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdBy?: Prisma.UserUpdateOneRequiredWithoutCreatedWorkspacesNestedInput
   members?: Prisma.WorkspaceMemberUpdateManyWithoutWorkspaceNestedInput
   activities?: Prisma.ActivityUpdateManyWithoutWorkspaceNestedInput
@@ -868,6 +938,8 @@ export type WorkspaceUncheckedUpdateWithoutLeadsInput = {
   stripeSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutWorkspaceNestedInput
   followUps?: Prisma.FollowUpUncheckedUpdateManyWithoutWorkspaceNestedInput
@@ -883,6 +955,8 @@ export type WorkspaceCreateWithoutActivitiesInput = {
   stripeCustomerId?: string | null
   stripeSubscriptionId?: string | null
   createdAt?: Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Date | string | null
   createdBy: Prisma.UserCreateNestedOneWithoutCreatedWorkspacesInput
   members?: Prisma.WorkspaceMemberCreateNestedManyWithoutWorkspaceInput
   leads?: Prisma.LeadCreateNestedManyWithoutWorkspaceInput
@@ -900,6 +974,8 @@ export type WorkspaceUncheckedCreateWithoutActivitiesInput = {
   stripeSubscriptionId?: string | null
   createdById: string
   createdAt?: Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Date | string | null
   members?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutWorkspaceInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutWorkspaceInput
   followUps?: Prisma.FollowUpUncheckedCreateNestedManyWithoutWorkspaceInput
@@ -931,6 +1007,8 @@ export type WorkspaceUpdateWithoutActivitiesInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdBy?: Prisma.UserUpdateOneRequiredWithoutCreatedWorkspacesNestedInput
   members?: Prisma.WorkspaceMemberUpdateManyWithoutWorkspaceNestedInput
   leads?: Prisma.LeadUpdateManyWithoutWorkspaceNestedInput
@@ -948,6 +1026,8 @@ export type WorkspaceUncheckedUpdateWithoutActivitiesInput = {
   stripeSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutWorkspaceNestedInput
   followUps?: Prisma.FollowUpUncheckedUpdateManyWithoutWorkspaceNestedInput
@@ -963,6 +1043,8 @@ export type WorkspaceCreateWithoutFollowUpsInput = {
   stripeCustomerId?: string | null
   stripeSubscriptionId?: string | null
   createdAt?: Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Date | string | null
   createdBy: Prisma.UserCreateNestedOneWithoutCreatedWorkspacesInput
   members?: Prisma.WorkspaceMemberCreateNestedManyWithoutWorkspaceInput
   leads?: Prisma.LeadCreateNestedManyWithoutWorkspaceInput
@@ -980,6 +1062,8 @@ export type WorkspaceUncheckedCreateWithoutFollowUpsInput = {
   stripeSubscriptionId?: string | null
   createdById: string
   createdAt?: Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Date | string | null
   members?: Prisma.WorkspaceMemberUncheckedCreateNestedManyWithoutWorkspaceInput
   leads?: Prisma.LeadUncheckedCreateNestedManyWithoutWorkspaceInput
   activities?: Prisma.ActivityUncheckedCreateNestedManyWithoutWorkspaceInput
@@ -1011,6 +1095,8 @@ export type WorkspaceUpdateWithoutFollowUpsInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdBy?: Prisma.UserUpdateOneRequiredWithoutCreatedWorkspacesNestedInput
   members?: Prisma.WorkspaceMemberUpdateManyWithoutWorkspaceNestedInput
   leads?: Prisma.LeadUpdateManyWithoutWorkspaceNestedInput
@@ -1028,6 +1114,8 @@ export type WorkspaceUncheckedUpdateWithoutFollowUpsInput = {
   stripeSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutWorkspaceNestedInput
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutWorkspaceNestedInput
@@ -1043,6 +1131,8 @@ export type WorkspaceCreateManyCreatedByInput = {
   stripeCustomerId?: string | null
   stripeSubscriptionId?: string | null
   createdAt?: Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Date | string | null
 }
 
 export type WorkspaceUpdateWithoutCreatedByInput = {
@@ -1054,6 +1144,8 @@ export type WorkspaceUpdateWithoutCreatedByInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   members?: Prisma.WorkspaceMemberUpdateManyWithoutWorkspaceNestedInput
   leads?: Prisma.LeadUpdateManyWithoutWorkspaceNestedInput
   activities?: Prisma.ActivityUpdateManyWithoutWorkspaceNestedInput
@@ -1070,6 +1162,8 @@ export type WorkspaceUncheckedUpdateWithoutCreatedByInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   members?: Prisma.WorkspaceMemberUncheckedUpdateManyWithoutWorkspaceNestedInput
   leads?: Prisma.LeadUncheckedUpdateManyWithoutWorkspaceNestedInput
   activities?: Prisma.ActivityUncheckedUpdateManyWithoutWorkspaceNestedInput
@@ -1086,6 +1180,8 @@ export type WorkspaceUncheckedUpdateManyWithoutCreatedByInput = {
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stripeSubscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  focusPicks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  focusAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -1165,6 +1261,8 @@ export type WorkspaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   stripeSubscriptionId?: boolean
   createdById?: boolean
   createdAt?: boolean
+  focusPicks?: boolean
+  focusAt?: boolean
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   members?: boolean | Prisma.Workspace$membersArgs<ExtArgs>
   leads?: boolean | Prisma.Workspace$leadsArgs<ExtArgs>
@@ -1184,6 +1282,8 @@ export type WorkspaceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   stripeSubscriptionId?: boolean
   createdById?: boolean
   createdAt?: boolean
+  focusPicks?: boolean
+  focusAt?: boolean
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["workspace"]>
 
@@ -1197,6 +1297,8 @@ export type WorkspaceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   stripeSubscriptionId?: boolean
   createdById?: boolean
   createdAt?: boolean
+  focusPicks?: boolean
+  focusAt?: boolean
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["workspace"]>
 
@@ -1210,9 +1312,11 @@ export type WorkspaceSelectScalar = {
   stripeSubscriptionId?: boolean
   createdById?: boolean
   createdAt?: boolean
+  focusPicks?: boolean
+  focusAt?: boolean
 }
 
-export type WorkspaceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "plan" | "brandColor" | "stripeCustomerId" | "stripeSubscriptionId" | "createdById" | "createdAt", ExtArgs["result"]["workspace"]>
+export type WorkspaceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "plan" | "brandColor" | "stripeCustomerId" | "stripeSubscriptionId" | "createdById" | "createdAt" | "focusPicks" | "focusAt", ExtArgs["result"]["workspace"]>
 export type WorkspaceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   members?: boolean | Prisma.Workspace$membersArgs<ExtArgs>
@@ -1249,6 +1353,8 @@ export type $WorkspacePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     stripeSubscriptionId: string | null
     createdById: string
     createdAt: Date
+    focusPicks: runtime.JsonValue | null
+    focusAt: Date | null
   }, ExtArgs["result"]["workspace"]>
   composites: {}
 }
@@ -1687,6 +1793,8 @@ export interface WorkspaceFieldRefs {
   readonly stripeSubscriptionId: Prisma.FieldRef<"Workspace", 'String'>
   readonly createdById: Prisma.FieldRef<"Workspace", 'String'>
   readonly createdAt: Prisma.FieldRef<"Workspace", 'DateTime'>
+  readonly focusPicks: Prisma.FieldRef<"Workspace", 'Json'>
+  readonly focusAt: Prisma.FieldRef<"Workspace", 'DateTime'>
 }
     
 

@@ -403,7 +403,8 @@ export const ModelName = {
   WorkspaceInvite: 'WorkspaceInvite',
   Lead: 'Lead',
   Activity: 'Activity',
-  FollowUp: 'FollowUp'
+  FollowUp: 'FollowUp',
+  DemoUsage: 'DemoUsage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -419,7 +420,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "workspace" | "workspaceMember" | "workspaceInvite" | "lead" | "activity" | "followUp"
+    modelProps: "user" | "workspace" | "workspaceMember" | "workspaceInvite" | "lead" | "activity" | "followUp" | "demoUsage"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -941,6 +942,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    DemoUsage: {
+      payload: Prisma.$DemoUsagePayload<ExtArgs>
+      fields: Prisma.DemoUsageFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DemoUsageFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DemoUsagePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DemoUsageFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DemoUsagePayload>
+        }
+        findFirst: {
+          args: Prisma.DemoUsageFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DemoUsagePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DemoUsageFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DemoUsagePayload>
+        }
+        findMany: {
+          args: Prisma.DemoUsageFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DemoUsagePayload>[]
+        }
+        create: {
+          args: Prisma.DemoUsageCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DemoUsagePayload>
+        }
+        createMany: {
+          args: Prisma.DemoUsageCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DemoUsageCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DemoUsagePayload>[]
+        }
+        delete: {
+          args: Prisma.DemoUsageDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DemoUsagePayload>
+        }
+        update: {
+          args: Prisma.DemoUsageUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DemoUsagePayload>
+        }
+        deleteMany: {
+          args: Prisma.DemoUsageDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DemoUsageUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DemoUsageUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DemoUsagePayload>[]
+        }
+        upsert: {
+          args: Prisma.DemoUsageUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DemoUsagePayload>
+        }
+        aggregate: {
+          args: Prisma.DemoUsageAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDemoUsage>
+        }
+        groupBy: {
+          args: Prisma.DemoUsageGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DemoUsageGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DemoUsageCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DemoUsageCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1002,7 +1077,9 @@ export const WorkspaceScalarFieldEnum = {
   stripeCustomerId: 'stripeCustomerId',
   stripeSubscriptionId: 'stripeSubscriptionId',
   createdById: 'createdById',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  focusPicks: 'focusPicks',
+  focusAt: 'focusAt'
 } as const
 
 export type WorkspaceScalarFieldEnum = (typeof WorkspaceScalarFieldEnum)[keyof typeof WorkspaceScalarFieldEnum]
@@ -1050,9 +1127,13 @@ export const LeadScalarFieldEnum = {
   status: 'status',
   aiSummary: 'aiSummary',
   aiReasons: 'aiReasons',
+  aiInsight: 'aiInsight',
+  aiNextAction: 'aiNextAction',
+  insightAt: 'insightAt',
   notes: 'notes',
   scoredAt: 'scoredAt',
   createdById: 'createdById',
+  assignedToId: 'assignedToId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1089,12 +1170,28 @@ export const FollowUpScalarFieldEnum = {
 export type FollowUpScalarFieldEnum = (typeof FollowUpScalarFieldEnum)[keyof typeof FollowUpScalarFieldEnum]
 
 
+export const DemoUsageScalarFieldEnum = {
+  window: 'window',
+  aiCalls: 'aiCalls'
+} as const
+
+export type DemoUsageScalarFieldEnum = (typeof DemoUsageScalarFieldEnum)[keyof typeof DemoUsageScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const JsonNullValueInput = {
@@ -1178,6 +1275,20 @@ export type ListEnumWorkspacePlanFieldRefInput<$PrismaModel> = FieldRefInputType
 
 
 /**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
  * Reference to a field of type 'Role'
  */
 export type EnumRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Role'>
@@ -1244,20 +1355,6 @@ export type EnumLeadStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
  * Reference to a field of type 'LeadStatus[]'
  */
 export type ListEnumLeadStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LeadStatus[]'>
-    
-
-
-/**
- * Reference to a field of type 'Json'
- */
-export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-/**
- * Reference to a field of type 'QueryMode'
- */
-export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -1467,6 +1564,7 @@ export type GlobalOmitConfig = {
   lead?: Prisma.LeadOmit
   activity?: Prisma.ActivityOmit
   followUp?: Prisma.FollowUpOmit
+  demoUsage?: Prisma.DemoUsageOmit
 }
 
 /* Types for Logging */

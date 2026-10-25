@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { motion } from "motion/react";
 import { signIn } from "next-auth/react";
+import { TryDemoButton } from "./TryDemoButton";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const isSignup = mode === "signup";
   const router = useRouter();
+  const demoUnavailable = useSearchParams().get("demo") === "unavailable";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -153,6 +155,25 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
               {loading ? "One sec…" : isSignup ? "Create account →" : "Sign in →"}
             </button>
           </form>
+
+          {!isSignup && (
+            <>
+              <div className="my-5 flex items-center gap-3 text-[12px] text-muted-foreground">
+                <span className="h-px flex-1 bg-border" />
+                or
+                <span className="h-px flex-1 bg-border" />
+              </div>
+              <TryDemoButton
+                label="Try demo, no sign-up"
+                className="w-full rounded-md border border-border bg-card px-5 py-3 text-[15px] font-600 text-foreground transition-all duration-150 hover:-translate-y-0.5 hover:border-mint"
+              />
+              {demoUnavailable && (
+                <p className="mt-2 text-center text-[13px] text-danger">
+                  The demo is unavailable right now. Please try again in a minute.
+                </p>
+              )}
+            </>
+          )}
 
           <p className="mt-8 text-center text-sm text-muted-foreground">
             {isSignup ? "Already have an account? " : "New to LeadFlow AI? "}

@@ -12,6 +12,7 @@ import {
   type DragStartEvent,
   type DragEndEvent,
 } from "@dnd-kit/core";
+import Link from "next/link";
 import { toast } from "sonner";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { ScoreBadge } from "@/components/leads/ScoreBadge";
@@ -122,7 +123,7 @@ function DraggableCard({ lead }: { lead: Lead }) {
 function LeadCard({ lead, dragging }: { lead: Lead; dragging?: boolean }) {
   const p = priorityStyle[lead.priority];
   return (
-    <a
+    <Link
       href={`/leads/${lead.id}`}
       onClick={(e) => dragging && e.preventDefault()}
       className={`block rounded-lg border border-border bg-card p-3 ${dragging ? "shadow-xl" : ""}`}
@@ -143,6 +144,6 @@ function LeadCard({ lead, dragging }: { lead: Lead; dragging?: boolean }) {
         <span className={`rounded-full px-2 py-0.5 text-[10px] font-600 ${p.className}`}>{p.label}</span>
         <span className="mono-data text-[12px] font-600 text-foreground">{formatCurrency(lead.value)}</span>
       </div>
-    </a>
+    </Link>
   );
 }

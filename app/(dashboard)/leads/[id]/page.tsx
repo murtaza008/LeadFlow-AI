@@ -13,7 +13,12 @@ import {
   Tag,
   DollarSign,
   Loader2,
+  Pencil,
+  UserRound,
+  CalendarDays,
 } from "lucide-react";
+import Link from "next/link";
+import { LeadFormDialog } from "@/components/leads/LeadFormDialog";
 import { motion, AnimatePresence } from "motion/react";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { Button } from "@/components/ui/button";
@@ -42,13 +47,30 @@ import { formatCurrency, initials, priorityStyle, statusLabel, relativeDue, type
 export default function LeadDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const { data: lead, isLoading } = useLead(id);
+  const { data: lead, isLoading, isError } = useLead(id);
   const updateLead = useUpdateLead();
   const deleteLead = useDeleteLead();
   const scoreLead = useScoreLead(id);
   const insights = useGenerateInsights(id);
   const addActivity = useAddActivity(id);
   const [note, setNote] = useState("");
+
+  if (isError && !lead) {
+    return (
+      <>
+        <Topbar title="Lead" />
+        <div className="flex-1 p-6">
+          <div className="rounded-xl border border-border bg-card p-14 text-center">
+            <p className="text-[15px] font-600 text-foreground">Lead not found</p>
+            <p className="mt-1 text-[13px] text-muted-foreground">It may have been deleted or belongs to another workspace.</p>
+            <Link href="/leads" className="mt-4 inline-flex rounded-md bg-primary px-4 py-2 text-[13px] font-600 text-primary-foreground">
+              Back to leads
+            </Link>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   if (isLoading || !lead) {
     return (
@@ -63,6 +85,9 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
   }
 
   const p = priorityStyle[lead.priority];
+  const insight =
+    insights.data ??
+    (lead.aiInsight ? { insight: lead.aiInsight, nextAction: lead.aiNextAction ?? "" } : null);
 
   async function onScore() {
     try {
@@ -116,9 +141,19 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
       <Topbar
         title={lead.name}
         action={
-          <Button variant="ghost" size="icon" onClick={onDelete} aria-label="Delete lead">
-            <Trash2 className="h-4 w-4 text-danger" />
-          </Button>
+          <>
+            <LeadFormDialog
+              lead={lead}
+              trigger={
+                <Button variant="outline" size="sm">
+                  <Pencil className="h-4 w-4" /> Edit
+                </Button>
+              }
+            />
+            <Button variant="ghost" size="icon" onClick={onDelete} aria-label="Delete lead">
+              <Trash2 className="h-4 w-4 text-danger" />
+            </Button>
+          </>
         }
       />
       <div className="flex-1 overflow-auto p-6">
@@ -157,13 +192,30 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
         <div className="mt-6 grid gap-5 lg:grid-cols-[1fr_340px]">
           <div className="space-y-5">
             <Card>
-              <CardContent className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-4">
+              <CardContent className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-3">
                 <Detail icon={Mail} label="Email" value={lead.email ?? "—"} />
                 <Detail icon={Phone} label="Phone" value={lead.phone ?? "—"} />
                 <Detail icon={Building2} label="Source" value={lead.source ?? "—"} />
                 <Detail icon={DollarSign} label="Deal value" value={formatCurrency(lead.value)} mono />
+                <Detail
+                  icon={UserRound}
+                  label="Owner"
+                  value={lead.assignedTo ? (lead.assignedTo.displayName ?? lead.assignedTo.email) : "Unassigned"}
+                />
+                <Detail icon={CalendarDays} label="Added" value={new Date(lead.createdAt).toLocaleDateString()} />
               </CardContent>
             </Card>
+
+            {lead.notes && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Notes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="whitespace-pre-line text-[13px] leading-relaxed text-foreground">{lead.notes}</p>
+                </CardContent>
+              </Card>
+            )}
 
             <Card>
               <CardHeader>
@@ -252,7 +304,7 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
               </CardHeader>
               <CardContent>
                 <AnimatePresence mode="wait">
-                  {insights.data ? (
+                  {insight ? (
                     <motion.div
                       key="result"
                       initial={{ opacity: 0, y: 6 }}
@@ -260,11 +312,13 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
                       className="space-y-3"
                     >
                       <p className="text-[13px] leading-relaxed text-foreground">
-                        {insights.data.insight}
+                        {insight.insight}
                       </p>
-                      <div className="rounded-md bg-mint-dim px-3 py-2 text-[12px] font-600 text-mint">
-                        Next: {insights.data.nextAction}
-                      </div>
+                      {insight.nextAction && (
+                        <div className="rounded-md bg-mint-dim px-3 py-2 text-[12px] font-600 text-mint">
+                          Next: {insight.nextAction}
+                        </div>
+                      )}
                     </motion.div>
                   ) : (
                     <p className="text-[13px] text-muted-foreground">
@@ -279,7 +333,7 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
                   variant="outline"
                 >
                   {insights.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {insights.data ? "Refresh insight" : "Generate insight"}
+                  {insight ? "Refresh insight" : "Generate insight"}
                 </Button>
               </CardContent>
             </Card>

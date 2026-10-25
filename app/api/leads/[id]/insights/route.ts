@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireUserId } from "@/lib/session";
+import { requireSessionUser } from "@/lib/session";
+import { claimDemoAiCall } from "@/lib/demo-limits";
 import { getCurrentWorkspace, ForbiddenError } from "@/lib/workspace";
 import { handleApiError } from "@/lib/handle-error";
 import { generateCustomerInsights, AiNotConfiguredError } from "@/lib/gemini";
@@ -8,12 +9,13 @@ import { generateCustomerInsights, AiNotConfiguredError } from "@/lib/gemini";
 export async function POST(_request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
-    const userId = await requireUserId();
-    const workspace = await getCurrentWorkspace(userId);
+    const user = await requireSessionUser();
+    const workspace = await getCurrentWorkspace(user.id);
     if (!workspace) throw new ForbiddenError("No workspace yet.");
 
     const lead = await prisma.lead.findFirst({ where: { id, workspaceId: workspace.id } });
     if (!lead) throw new ForbiddenError("Lead not found in this workspace.");
+    if (user.isDemo) await claimDemoAiCall();
 
     const activities = await prisma.activity.findMany({
       where: { leadId: id },
@@ -35,6 +37,11 @@ export async function POST(_request: Request, context: { params: Promise<{ id: s
       },
       activities.map((a) => a.body),
     );
+
+    await prisma.lead.update({
+      where: { id },
+      data: { aiInsight: insights.insight, aiNextAction: insights.nextAction, insightAt: new Date() },
+    });
 
     return NextResponse.json(insights);
   } catch (error) {

@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { AuthForm } from "@/components/auth/AuthForm";
 
 export const metadata: Metadata = { title: "Create your account — LeadFlow AI" };
 
 export default function SignupPage() {
-  return <AuthForm mode="signup" />;
+  return (
+    <Suspense>
+      <AuthForm mode="signup" />
+    </Suspense>
+  );
 }
