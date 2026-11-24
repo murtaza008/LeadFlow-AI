@@ -85,7 +85,7 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
               <button
                 onClick={accept}
                 disabled={accepting}
-                className="mt-6 w-full rounded-md bg-mint px-5 py-3 text-[15px] font-600 text-growth transition-all hover:-translate-y-0.5 disabled:opacity-60"
+                className="mt-6 w-full rounded-md bg-accent px-5 py-3 text-[15px] font-600 text-accent-fg transition-all hover:-translate-y-0.5 disabled:opacity-60"
               >
                 {accepting ? "Joining…" : "Accept invite"}
               </button>
@@ -93,7 +93,7 @@ export default function InvitePage({ params }: { params: Promise<{ token: string
               <div className="mt-6 flex flex-col gap-2">
                 <Link
                   href="/signup"
-                  className="w-full rounded-md bg-mint px-5 py-3 text-[15px] font-600 text-growth transition-all hover:-translate-y-0.5"
+                  className="w-full rounded-md bg-accent px-5 py-3 text-[15px] font-600 text-accent-fg transition-all hover:-translate-y-0.5"
                 >
                   Create account to accept
                 </Link>

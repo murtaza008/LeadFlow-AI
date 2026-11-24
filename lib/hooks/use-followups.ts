@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { q } from "@/lib/queries";
 
 export type FollowUpWithLead = {
   id: string;
@@ -12,14 +13,8 @@ export type FollowUpWithLead = {
   lead: { name: string; company: string | null };
 };
 
-async function fetchFollowUps(): Promise<FollowUpWithLead[]> {
-  const res = await fetch("/api/followups");
-  if (!res.ok) throw new Error("Failed to load follow-ups");
-  return res.json();
-}
-
 export function useFollowUps() {
-  return useQuery({ queryKey: ["followups"], queryFn: fetchFollowUps });
+  return useQuery(q.followups());
 }
 
 export function useToggleFollowUp() {
@@ -37,6 +32,8 @@ export function useToggleFollowUp() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["followups"] });
       qc.invalidateQueries({ queryKey: ["leads"] });
+      qc.invalidateQueries({ queryKey: ["summary"] });
+      qc.invalidateQueries({ queryKey: ["activity"] });
     },
   });
 }

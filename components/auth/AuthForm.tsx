@@ -61,7 +61,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     <div className="grid min-h-screen bg-paper md:grid-cols-2">
       <div className="relative hidden flex-col justify-between overflow-hidden bg-growth p-10 text-leaf md:flex">
         <Link href="/" className="relative z-10 flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-mint text-[13px] font-800 text-growth">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent text-[13px] font-800 text-accent-fg">
             L
           </span>
           <span className="font-display text-lg font-700">LeadFlow AI</span>
@@ -150,7 +150,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-md bg-mint px-5 py-3 text-[15px] font-600 text-growth transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-10px_var(--color-mint)] disabled:opacity-60 disabled:hover:translate-y-0"
+              className="w-full rounded-md bg-accent px-5 py-3 text-[15px] font-600 text-accent-fg transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-10px_var(--color-mint)] disabled:opacity-60 disabled:hover:translate-y-0"
             >
               {loading ? "One sec…" : isSignup ? "Create account →" : "Sign in →"}
             </button>
@@ -179,7 +179,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
             {isSignup ? "Already have an account? " : "New to LeadFlow AI? "}
             <Link
               href={isSignup ? "/login" : "/signup"}
-              className="font-600 text-mint hover:underline"
+              className="font-600 text-mint underline underline-offset-4 hover:decoration-2"
             >
               {isSignup ? "Sign in" : "Get started free"}
             </Link>

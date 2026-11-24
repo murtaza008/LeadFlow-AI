@@ -79,7 +79,7 @@ function FollowUpRow({ followUp }: { followUp: FollowUpWithLead }) {
         onClick={() => toggle.mutate({ id: followUp.id, done: !followUp.done })}
         aria-label={followUp.done ? "Mark as not done" : "Mark as done"}
         className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-colors ${
-          followUp.done ? "border-mint bg-mint text-growth" : "border-border hover:border-mint"
+          followUp.done ? "border-mint bg-accent text-accent-fg" : "border-border hover:border-mint"
         }`}
       >
         {followUp.done && <Check className="h-3.5 w-3.5" />}

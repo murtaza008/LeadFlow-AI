@@ -16,11 +16,11 @@ export function Nav() {
       initial={{ opacity: 0, y: -12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="sticky top-0 z-50 border-b border-border-dark bg-growth/80 backdrop-blur-md"
+      className="sticky top-0 z-50 border-b border-border-dark bg-growth"
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
         <a href="#top" className="flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-mint">
+          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent">
             <span className="font-display text-[15px] font-800 text-growth">L</span>
           </span>
           <span className="font-display text-[16px] font-700 text-leaf">LeadFlow AI</span>
@@ -45,7 +45,7 @@ export function Nav() {
           </Link>
           <Link
             href="/signup"
-            className="rounded-md bg-mint px-4 py-2 text-[14px] font-600 text-growth transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-8px_var(--color-mint)]"
+            className="rounded-md bg-accent px-4 py-2 text-[14px] font-600 text-accent-fg transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-8px_var(--color-mint)]"
           >
             Start free
           </Link>

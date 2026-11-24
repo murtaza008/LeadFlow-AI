@@ -1,131 +1,324 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@custom-variant dark (&:is(.dark *));
+
 /*
- * LeadFlow AI Design System
- * "Growth & Mint" — dark growth/storm marketing surfaces, light card-based
- * dashboard, mint-green as the primary growth signal, ember/amber for
- * urgency (hot leads, overdue follow-ups).
+ * LeadFlow design system
+ *
+ * Cool graphite surfaces with one ochre accent. Every colour is a CSS variable
+ * with a light and a dark value; Tailwind utilities read the variable, so one
+ * class works in both themes. Run `npm run check:contrast` after changing any
+ * value: it checks every text/background pair against WCAG AA.
+ *
+ * Lead heat has its own scale, kept apart from the accent and from danger:
+ *   hot  = vermilion, warm = ochre (the accent family), cold = slate blue.
+ * Danger (errors, overdue, delete) is crimson, a clearly different hue.
+ *
+ * Depth comes from 1px borders, layered surfaces (bg → surface → surface-2) and
+ * small shadows, plus an inset top highlight in dark mode.
  */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
+  --font-display: var(--font-bricolage);
+  --font-sans: var(--font-geist);
+  --font-mono: var(--font-geist-mono);
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-sunken: var(--sunken);
+  --color-overlay: var(--overlay);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
   --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-text: var(--accent-text);
+  --color-hot: var(--hot);
+  --color-hot-soft: var(--hot-soft);
+  --color-hot-text: var(--hot-text);
+  --color-cold: var(--cold);
+  --color-cold-soft: var(--cold-soft);
+  --color-cold-text: var(--cold-text);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-text: var(--success-text);
+  --color-danger: var(--danger);
+  --color-danger-fg: var(--danger-fg);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-text: var(--danger-text);
+  --color-inverse: var(--inverse);
+  --color-inverse-fg: var(--inverse-fg);
+  --color-inverse-muted: var(--inverse-muted);
+  --color-focus: var(--focus);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-other: var(--chart-other);
 
-  /* Brand tokens */
-  --color-growth: #1a1f16;
-  --color-storm: #2e3440;
-  --color-leaf: #f5f7f0;
-  --color-paper: #ffffff;
-  --color-mint: #00c27c;
-  --color-mint-dim: #e0f7ee;
-  --color-ember: #ff6b35;
-  --color-ember-dim: #fff0e8;
-  --color-fog: #9ba8a3;
-  --color-graphite: #4a5568;
-  --color-border-dark: #3d4a42;
-  --color-border-light: #dde4dc;
-  --color-amber: #e6a817;
-  --color-danger: #e2523f;
+  /* ---- Legacy bridge (removed once every screen is redesigned) ----
+     Old class names point at the new variables, so screens that haven't been
+     rebuilt yet still read correctly in both themes. */
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--fg);
+  --color-popover: var(--overlay);
+  --color-popover-foreground: var(--fg);
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--accent-fg);
+  --color-secondary: var(--sunken);
+  --color-secondary-foreground: var(--fg);
+  --color-muted: var(--sunken);
+  --color-muted-foreground: var(--fg-muted);
+  --color-accent-foreground: var(--fg);
+  --color-destructive: var(--danger);
+  --color-destructive-foreground: var(--danger-fg);
+  --color-input: var(--border);
+  --color-ring: var(--focus);
+  --color-mint: var(--accent-text);
+  --color-mint-dim: var(--accent-soft);
+  --color-ember: var(--hot-text);
+  --color-ember-dim: var(--hot-soft);
+  --color-amber: var(--accent-text);
+  --color-growth: var(--inverse);
+  --color-storm: var(--inverse);
+  --color-leaf: var(--inverse-fg);
+  --color-paper: var(--surface);
+  --color-fog: var(--inverse-muted);
+  --color-graphite: var(--fg-muted);
+  --color-border-dark: color-mix(in oklab, var(--inverse-fg) 16%, var(--inverse));
+  --color-border-light: var(--border);
+  /* ---- end legacy bridge ---- */
 
-  --color-chart-1: var(--color-mint);
-  --color-chart-2: var(--color-ember);
-  --color-chart-3: var(--color-amber);
-  --color-chart-4: var(--color-graphite);
-  --color-chart-5: var(--color-fog);
+  --radius-sm: 0.3125rem;
+  --radius-md: 0.4375rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
 
-  --font-display: var(--font-jakarta);
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-jetbrains-mono);
+  --shadow-xs: var(--shadow-xs-v);
+  --shadow-sm: var(--shadow-sm-v);
+  --shadow-md: var(--shadow-md-v);
+  --shadow-lg: var(--shadow-lg-v);
 
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-
-  --ease-settle: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* tokens:light */
+:root {
+  --bg: #f2f3f5;
+  --surface: #ffffff;
+  --surface-2: #f8f9fa;
+  --sunken: #e8eaee;
+  --overlay: #ffffff;
+  --fg: #121417;
+  --fg-muted: #484e56;
+  --fg-subtle: #5b616a;
+  --border: #dfe2e7;
+  --border-strong: #c2c7cf;
+  --accent: #8a5d00;
+  --accent-hover: #744e00;
+  --accent-fg: #ffffff;
+  --accent-soft: #f5ead2;
+  --accent-text: #7a5200;
+  --hot: #c2410c;
+  --hot-soft: #fce9df;
+  --hot-text: #a9370a;
+  --cold: #4b6a9b;
+  --cold-soft: #e5ecf6;
+  --cold-text: #3a5785;
+  --success: #23764a;
+  --success-soft: #e1f1e7;
+  --success-text: #1d6640;
+  --danger: #b4173f;
+  --danger-fg: #ffffff;
+  --danger-soft: #fbe6eb;
+  --danger-text: #a01438;
+  --inverse: #16191d;
+  --inverse-fg: #f2f3f5;
+  --inverse-muted: #aab0b8;
+  --focus: #8a5d00;
+  /* Categorical order: chart-1 → chart-2 → chart-3 (ochre, blue, rose),
+     validated with the dataviz palette checks for CVD separation, lightness
+     and chroma. chart-other is the neutral "other / previous period" mark. */
+  --chart-1: #a8740a;
+  --chart-2: #3f68c4;
+  --chart-3: #c0457a;
+  --chart-other: #868c94;
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: #f5f7f0;
-  --foreground: #1a1f16;
-  --card: #ffffff;
-  --card-foreground: #1a1f16;
-  --popover: #ffffff;
-  --popover-foreground: #1a1f16;
-  --primary: #00c27c;
-  --primary-foreground: #0a1410;
-  --secondary: #e0f7ee;
-  --secondary-foreground: #1a1f16;
-  --muted: #eef1e9;
-  --muted-foreground: #4a5568;
-  --accent: #fff0e8;
-  --accent-foreground: #1a1f16;
-  --destructive: #e2523f;
-  --destructive-foreground: #ffffff;
-  --border: #dde4dc;
-  --input: #dde4dc;
-  --ring: #00c27c;
+  color-scheme: light;
+  --highlight: rgba(255, 255, 255, 0);
+  --shadow-xs-v: 0 1px 0 rgba(18, 20, 23, 0.04);
+  --shadow-sm-v: 0 1px 2px rgba(18, 20, 23, 0.06), 0 1px 1px rgba(18, 20, 23, 0.03);
+  --shadow-md-v: 0 4px 12px -4px rgba(18, 20, 23, 0.1), 0 2px 4px -2px rgba(18, 20, 23, 0.06);
+  --shadow-lg-v: 0 16px 32px -12px rgba(18, 20, 23, 0.16), 0 4px 8px -4px rgba(18, 20, 23, 0.06);
+  --grid-line: rgba(18, 20, 23, 0.06);
+  --dur-fast: 150ms;
+  --dur-base: 260ms;
+  --dur-slow: 450ms;
+}
+
+/* tokens:dark */
+.dark {
+  --bg: #0d0f12;
+  --surface: #14171b;
+  --surface-2: #1a1e23;
+  --sunken: #090b0d;
+  --overlay: #1c2026;
+  --fg: #eceef1;
+  --fg-muted: #a7aeb6;
+  --fg-subtle: #8d949c;
+  --border: #252a31;
+  --border-strong: #3b424b;
+  --accent: #e3a940;
+  --accent-hover: #ebba5f;
+  --accent-fg: #1a1204;
+  --accent-soft: #2d2410;
+  --accent-text: #e8b456;
+  --hot: #ea7a45;
+  --hot-soft: #34190e;
+  --hot-text: #f3976a;
+  --cold: #7f9fd3;
+  --cold-soft: #17212f;
+  --cold-text: #95b3e3;
+  --success: #3aa56a;
+  --success-soft: #12291c;
+  --success-text: #72cf99;
+  --danger: #c8284a;
+  --danger-fg: #ffffff;
+  --danger-soft: #361820;
+  --danger-text: #f48ca2;
+  --inverse: #eceef1;
+  --inverse-fg: #121417;
+  --inverse-muted: #484e56;
+  --focus: #e8b456;
+  --chart-1: #b8851f;
+  --chart-2: #5f86dc;
+  --chart-3: #d4628c;
+  --chart-other: #707780;
+}
+
+.dark {
+  color-scheme: dark;
+  --highlight: rgba(255, 255, 255, 0.045);
+  --shadow-xs-v: 0 1px 0 rgba(0, 0, 0, 0.3);
+  --shadow-sm-v: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md-v: 0 6px 16px -6px rgba(0, 0, 0, 0.6), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg-v: 0 20px 40px -16px rgba(0, 0, 0, 0.7), 0 4px 8px -4px rgba(0, 0, 0, 0.4);
+  --grid-line: rgba(255, 255, 255, 0.05);
+}
+
+/* Anything printed stays light. */
+@media print {
+  :root,
+  .dark {
+    color-scheme: light;
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #f8f9fa;
+    --sunken: #f2f3f5;
+    --overlay: #ffffff;
+    --fg: #121417;
+    --fg-muted: #484e56;
+    --fg-subtle: #5b616a;
+    --border: #dfe2e7;
+    --border-strong: #c2c7cf;
+    --accent: #8a5d00;
+    --accent-fg: #ffffff;
+    --accent-soft: #f5ead2;
+    --accent-text: #7a5200;
+    --hot-soft: #fce9df;
+    --hot-text: #a9370a;
+    --cold-soft: #e5ecf6;
+    --cold-text: #3a5785;
+    --success-soft: #e1f1e7;
+    --success-text: #1d6640;
+    --danger-soft: #fbe6eb;
+    --danger-text: #a01438;
+    --chart-1: #a8740a;
+    --chart-2: #3f68c4;
+    --chart-3: #c0457a;
+    --chart-other: #868c94;
+    --highlight: rgba(255, 255, 255, 0);
+    --shadow-xs-v: none;
+    --shadow-sm-v: none;
+    --shadow-md-v: none;
+    --shadow-lg-v: none;
+  }
 }
 
 @layer base {
-  * {
-    border-color: var(--color-border);
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
   }
   html {
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     scroll-behavior: smooth;
+    background-color: var(--bg);
   }
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    background-color: var(--bg);
+    color: var(--fg);
     font-family: var(--font-sans);
   }
   h1,
   h2,
   h3,
-  h4,
-  h5 {
+  h4 {
     font-family: var(--font-display);
+    letter-spacing: -0.018em;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
   }
   ::selection {
-    background-color: color-mix(in oklab, var(--color-mint) 30%, transparent);
+    background: var(--accent);
+    color: var(--accent-fg);
   }
-  *:focus-visible {
-    outline: 2px solid var(--color-mint);
+  :focus-visible {
+    outline: 2px solid var(--focus);
     outline-offset: 2px;
-    border-radius: 2px;
+  }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
   }
 }
 
+/* ---------- utilities ---------- */
+
+@utility font-display {
+  font-family: var(--font-display);
+}
+
+/* Small uppercase label for section eyebrows and table headers. */
 @utility eyebrow {
   font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--fg-subtle);
 }
 
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Kept for screens not yet rebuilt. */
 @utility mono-data {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
@@ -133,73 +326,280 @@
 
 @utility input-field {
   width: 100%;
+  height: 2.25rem;
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background-color: var(--color-card);
-  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  padding: 0 0.75rem;
   font-size: 14px;
-  color: var(--color-foreground);
+  color: var(--fg);
   outline: none;
+  box-shadow: inset 0 1px 0 var(--highlight);
   transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
-
-  &:focus {
-    border-color: var(--color-mint);
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
+  &::placeholder {
+    color: var(--fg-subtle);
+  }
+  &:hover {
+    border-color: var(--border-strong);
+  }
+  &:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 22%, transparent);
   }
 }
 
-@keyframes score-settle {
-  0% {
-    transform: scale(1.35);
-    opacity: 0;
-  }
-  60% {
-    transform: scale(1.08);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
+/* Layered surface: border, small shadow, inset top highlight in dark mode. */
+@utility panel {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 1px 0 var(--highlight), var(--shadow-xs-v);
+}
+
+@utility panel-raised {
+  background-color: var(--overlay);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 1px 0 var(--highlight), var(--shadow-lg-v);
+}
+
+/* Clickable card: lifts slightly on hover (pointer devices only). */
+@utility lift {
+  transition:
+    transform var(--dur-base) var(--ease-out-expo),
+    box-shadow var(--dur-base) var(--ease-out-expo),
+    border-color var(--dur-fast) ease;
+  @media (hover: hover) {
+    &:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-strong);
+      box-shadow: inset 0 1px 0 var(--highlight), var(--shadow-md-v);
+    }
   }
 }
 
-@keyframes soft-pulse {
-  0%,
-  100% {
-    opacity: 0.4;
-  }
-  50% {
-    opacity: 0.85;
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+/* Links inside running text are underlined, so they never rely on colour alone. */
+@utility prose-link {
+  color: var(--accent-text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  &:hover {
+    text-decoration-thickness: 2px;
   }
 }
+
+/* ---------- motion ---------- */
 
 @keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes pop-in {
   0% {
     opacity: 0;
-    transform: translateY(16px);
+    transform: scale(0.96);
   }
   100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 
-.animate-score-settle {
-  animation: score-settle 0.45s var(--ease-settle) both;
-}
-.animate-soft-pulse {
-  animation: soft-pulse 1.4s ease-in-out infinite;
-}
-.animate-rise-in {
-  animation: rise-in 0.4s var(--ease-out-expo) both;
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
 }
 
+@keyframes grow-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes sheet-left {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes sheet-right {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes skeleton {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* SVG lines draw in from left to right (set pathLength="1" on the path). */
+@utility draw-in {
+  stroke-dasharray: 1;
+  animation: draw 900ms var(--ease-out-expo) both;
+}
+
+/* Lists and cards rise in staggered. Children set --i (capped at 15 in JS). */
+@utility stagger {
+  & > * {
+    animation: rise-in var(--dur-slow) var(--ease-out-expo) both;
+    animation-delay: calc(var(--i, 0) * 35ms);
+  }
+}
+
+/* Headline: words rise in one after another (pure CSS, paints with the HTML). */
+@utility word-reveal {
+  & > span {
+    display: inline-block;
+    animation: rise-in 620ms var(--ease-out-expo) both;
+    animation-delay: calc(var(--w, 0) * 55ms + 60ms);
+  }
+}
+
+/* Faint grid behind the hero: depth from lines, not blobs. */
+@utility grid-backdrop {
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, black 0%, transparent 85%);
+}
+
+@utility rise {
+  animation: rise-in var(--dur-slow) var(--ease-out-expo) both;
+}
+
+@utility pop {
+  animation: pop-in var(--dur-base) var(--ease-out-expo) both;
+}
+
+@utility grow-x {
+  transform-origin: left center;
+  animation: grow-x var(--dur-slow) var(--ease-out-expo) both;
+}
+
+@utility grow-y {
+  transform-origin: bottom center;
+  animation: grow-y var(--dur-slow) var(--ease-out-expo) both;
+}
+
+@utility skeleton {
+  background-color: var(--sunken);
+  border-radius: var(--radius-sm);
+  animation: skeleton 1.4s ease-in-out infinite;
+}
+
+/* Kept for screens not yet rebuilt. */
+.animate-soft-pulse {
+  animation: skeleton 1.4s ease-in-out infinite;
+}
+.animate-rise-in {
+  animation: rise-in var(--dur-slow) var(--ease-out-expo) both;
+}
+.animate-score-settle {
+  animation: pop-in var(--dur-base) var(--ease-out-expo) both;
+}
+
+/* Radix popovers / hover cards / menus / selects */
+[data-radix-popper-content-wrapper] [data-state="open"][data-side] {
+  animation: pop-in 180ms var(--ease-out-expo) both;
+}
+
+/* ---------- view transitions ---------- */
+
+/* Page changes: the old page fades out, the new one rises in. The rest of the
+   shell (sidebar, top bar) is not part of the transition. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-old(.page-out) {
+  animation: 120ms ease-out both vt-fade-out;
+}
+::view-transition-new(.page-in) {
+  animation: 320ms var(--ease-out-expo) 60ms both vt-rise-in;
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Theme switch: the new theme is revealed in a circle from the toggle. */
+html[data-theme-switching]::view-transition-old(root),
+html[data-theme-switching]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+html[data-theme-switching]::view-transition-old(root) {
+  z-index: 1;
+}
+html[data-theme-switching]::view-transition-new(root) {
+  z-index: 2;
+}
+
+/* ---------- reduced motion: everything off ---------- */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }

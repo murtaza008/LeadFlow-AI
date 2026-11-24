@@ -90,7 +90,7 @@ export default function SettingsPage() {
                 <span className="rounded-full bg-mint-dim px-2.5 py-1 text-[11px] font-600 uppercase text-mint">
                   {ws ? PLAN_DETAILS[ws.plan].name : "—"}
                 </span>
-                <a href="/billing" className="text-[12px] text-mint hover:underline">
+                <a href="/billing" className="text-[12px] text-mint underline underline-offset-4 hover:decoration-2">
                   Manage billing →
                 </a>
               </div>

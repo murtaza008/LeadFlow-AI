@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { q } from "@/lib/queries";
 
 export type Lead = {
   id: string;
@@ -36,12 +37,8 @@ async function json<T>(res: Response): Promise<T> {
   return res.json();
 }
 
-async function fetchLeads(): Promise<Lead[]> {
-  return json(await fetch("/api/leads"));
-}
-
 export function useLeads() {
-  return useQuery({ queryKey: ["leads"], queryFn: fetchLeads });
+  return useQuery(q.leads());
 }
 
 export type CreateLeadInput = {
@@ -75,6 +72,8 @@ function invalidateLeadViews(qc: ReturnType<typeof useQueryClient>) {
   qc.invalidateQueries({ queryKey: ["followups"] });
   qc.invalidateQueries({ queryKey: ["analytics"] });
   qc.invalidateQueries({ queryKey: ["recommendations"] });
+  qc.invalidateQueries({ queryKey: ["summary"] });
+  qc.invalidateQueries({ queryKey: ["activity"] });
 }
 
 export function useCreateLead() {
@@ -126,7 +125,7 @@ export function useDeleteLead() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => json(await fetch(`/api/leads/${id}`, { method: "DELETE" })),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["leads"] }),
+    onSuccess: () => invalidateLeadViews(qc),
   });
 }
 

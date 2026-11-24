@@ -5,7 +5,7 @@ export function Footer() {
         <div className="flex flex-col items-start justify-between gap-8 sm:flex-row sm:items-center">
           <div>
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-mint">
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent">
                 <span className="font-display text-[15px] font-800 text-growth">L</span>
               </span>
               <span className="font-display text-[16px] font-700 text-leaf">LeadFlow AI</span>

@@ -59,7 +59,7 @@ function FollowupMock() {
       <div className="h-1.5 w-11/12 rounded-full bg-border-light" />
       <div className="h-1.5 w-full rounded-full bg-border-light" />
       <div className="h-1.5 w-8/12 rounded-full bg-border-light" />
-      <div className="mt-2 inline-flex rounded-md bg-mint px-2 py-1 text-[10px] font-600 text-growth">
+      <div className="mt-2 inline-flex rounded-md bg-accent px-2 py-1 text-[10px] font-600 text-accent-fg">
         Send follow-up
       </div>
     </div>

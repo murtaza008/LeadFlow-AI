@@ -63,7 +63,7 @@ export default function PipelinePage() {
       <Topbar title="Pipeline" />
       <div className="flex-1 overflow-auto p-6">
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-          <div className="flex gap-4 overflow-x-auto pb-2">
+          <div className="flex gap-4 overflow-x-auto pb-2" tabIndex={0} role="region" aria-label="Pipeline board">
             {COLUMNS.map((col) => (
               <Column key={col.key} status={col.key} label={col.label} leads={byStatus[col.key]} />
             ))}

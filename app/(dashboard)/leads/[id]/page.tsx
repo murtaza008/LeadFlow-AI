@@ -275,7 +275,7 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
                   <ul className="mt-4 space-y-1.5">
                     {lead.aiReasons.map((r, i) => (
                       <li key={i} className="flex items-start gap-2 text-[12px] text-muted-foreground">
-                        <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-mint" />
+                        <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-accent" />
                         {r}
                       </li>
                     ))}

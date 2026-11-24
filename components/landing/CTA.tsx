@@ -26,7 +26,7 @@ export function CTA() {
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                 <Link
                   href="/signup"
-                  className="rounded-md bg-mint px-6 py-3 text-[15px] font-600 text-growth transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-10px_var(--color-mint)]"
+                  className="rounded-md bg-accent px-6 py-3 text-[15px] font-600 text-accent-fg transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-10px_var(--color-mint)]"
                 >
                   Start free →
                 </Link>

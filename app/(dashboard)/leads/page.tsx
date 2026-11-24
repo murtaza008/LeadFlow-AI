@@ -67,7 +67,7 @@ export default function LeadsPage() {
             />
           </div>
           <Select value={status} onValueChange={(v) => setStatus(v as StatusFilter)}>
-            <SelectTrigger className="w-full sm:w-44">
+            <SelectTrigger className="w-full sm:w-44" aria-label="Filter by stage">
               <SelectValue placeholder="All stages" />
             </SelectTrigger>
             <SelectContent>

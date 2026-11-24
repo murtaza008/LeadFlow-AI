@@ -75,7 +75,7 @@ export function Pricing() {
                   {t.limits.map((l) => (
                     <li key={l} className="flex items-center gap-2.5">
                       <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-mint/15">
-                        <span className="h-1.5 w-1.5 rounded-full bg-mint" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent" />
                       </span>
                       <span className="mono-data text-[13px] text-leaf">{l}</span>
                     </li>
@@ -86,7 +86,7 @@ export function Pricing() {
                   className={cn(
                     "mt-7 rounded-md px-5 py-3 text-center text-[15px] font-600 transition-all duration-150 hover:-translate-y-0.5",
                     t.featured
-                      ? "bg-mint text-growth hover:shadow-[0_10px_30px_-10px_var(--color-mint)]"
+                      ? "bg-accent text-accent-fg hover:shadow-[0_10px_30px_-10px_var(--color-mint)]"
                       : "border border-border-dark text-leaf hover:border-fog",
                   )}
                 >

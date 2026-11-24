@@ -1,0 +1,80 @@
+[
+  {
+    "route": "/",
+    "status": 200,
+    "scripts": 15,
+    "kb": 266.4
+  },
+  {
+    "route": "/login",
+    "status": 200,
+    "scripts": 15,
+    "kb": 261.6
+  },
+  {
+    "route": "/signup",
+    "status": 200,
+    "scripts": 15,
+    "kb": 261.6
+  },
+  {
+    "route": "/this-page-does-not-exist",
+    "status": 404,
+    "scripts": 11,
+    "kb": 201.9
+  },
+  {
+    "route": "/dashboard",
+    "status": 200,
+    "scripts": 16,
+    "kb": 281.2
+  },
+  {
+    "route": "/leads",
+    "status": 200,
+    "scripts": 16,
+    "kb": 266.4
+  },
+  {
+    "route": "/leads/demo-lead-01",
+    "status": 200,
+    "scripts": 18,
+    "kb": 315.2
+  },
+  {
+    "route": "/pipeline",
+    "status": 200,
+    "scripts": 16,
+    "kb": 266.3
+  },
+  {
+    "route": "/follow-ups",
+    "status": 200,
+    "scripts": 15,
+    "kb": 252.7
+  },
+  {
+    "route": "/analytics",
+    "status": 200,
+    "scripts": 16,
+    "kb": 358.1
+  },
+  {
+    "route": "/team",
+    "status": 200,
+    "scripts": 16,
+    "kb": 263.8
+  },
+  {
+    "route": "/billing",
+    "status": 200,
+    "scripts": 15,
+    "kb": 252.5
+  },
+  {
+    "route": "/settings",
+    "status": 200,
+    "scripts": 15,
+    "kb": 253.9
+  }
+]
