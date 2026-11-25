@@ -14,13 +14,17 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
   try {
     const { id: workspaceId } = await context.params;
     const userId = await requireUserId();
-    await requireWorkspaceMember(userId, workspaceId);
+    const role = await requireWorkspaceMember(userId, workspaceId);
 
     const invites = await prisma.workspaceInvite.findMany({
       where: { workspaceId, acceptedAt: null },
       orderBy: { createdAt: "desc" },
+      select: { id: true, email: true, role: true, token: true, expiresAt: true, createdAt: true },
     });
-    return NextResponse.json(invites);
+    // The token is the invite link. Only people who may invite get it, so a
+    // Member can't copy an Admin invite and join with more rights.
+    const canInvite = role === "OWNER" || role === "ADMIN";
+    return NextResponse.json(invites.map(({ token, ...rest }) => (canInvite ? { ...rest, token } : rest)));
   } catch (error) {
     return handleApiError(error);
   }

@@ -23,11 +23,6 @@ export const buttonVariants = cva(
         danger: "bg-danger text-danger-fg hover:opacity-90",
         "danger-ghost": "text-danger-text hover:bg-danger-soft",
         link: "text-accent-text underline underline-offset-4 hover:decoration-2 px-0 h-auto",
-        // Older names, still used by screens that haven't been rebuilt.
-        default: primary,
-        outline: secondary,
-        destructive: "bg-danger text-danger-fg hover:opacity-90",
-        dark: "bg-inverse text-inverse-fg hover:opacity-90",
       },
       size: {
         sm: "h-8 px-3 text-[13px] rounded-md",
@@ -35,7 +30,6 @@ export const buttonVariants = cva(
         lg: "h-11 px-5 text-[15px] rounded-lg",
         icon: "size-9 rounded-md",
         "icon-sm": "size-8 rounded-md",
-        default: "h-9 px-3.5 text-sm rounded-md",
       },
     },
     defaultVariants: { variant: "secondary", size: "md" },

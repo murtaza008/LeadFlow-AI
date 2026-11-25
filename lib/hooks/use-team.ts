@@ -7,6 +7,7 @@ export type Member = {
   id: string;
   userId: string;
   role: "OWNER" | "ADMIN" | "MEMBER";
+  createdAt: string;
   user: { displayName: string | null; email: string; avatarUrl: string | null };
 };
 
@@ -15,6 +16,9 @@ export type Invite = {
   email: string;
   role: "OWNER" | "ADMIN" | "MEMBER";
   expiresAt: string;
+  createdAt: string;
+  /** The invite link token; only sent to Owners and Admins. */
+  token?: string;
 };
 
 async function json<T>(res: Response): Promise<T> {

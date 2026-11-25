@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -68,40 +67,6 @@
   --color-rail-border: var(--rail-border);
   --color-rail-accent: var(--rail-accent);
 
-  /* ---- Legacy bridge (removed once every screen is redesigned) ----
-     Old class names point at the new variables, so screens that haven't been
-     rebuilt yet still read correctly in both themes. */
-  --color-background: var(--bg);
-  --color-foreground: var(--fg);
-  --color-card: var(--surface);
-  --color-card-foreground: var(--fg);
-  --color-popover: var(--overlay);
-  --color-popover-foreground: var(--fg);
-  --color-primary: var(--accent);
-  --color-primary-foreground: var(--accent-fg);
-  --color-secondary: var(--sunken);
-  --color-secondary-foreground: var(--fg);
-  --color-muted: var(--sunken);
-  --color-muted-foreground: var(--fg-muted);
-  --color-accent-foreground: var(--fg);
-  --color-destructive: var(--danger);
-  --color-destructive-foreground: var(--danger-fg);
-  --color-input: var(--border);
-  --color-ring: var(--focus);
-  --color-mint: var(--accent-text);
-  --color-mint-dim: var(--accent-soft);
-  --color-ember: var(--hot-text);
-  --color-ember-dim: var(--hot-soft);
-  --color-amber: var(--accent-text);
-  --color-growth: var(--inverse);
-  --color-storm: var(--inverse);
-  --color-leaf: var(--inverse-fg);
-  --color-paper: var(--surface);
-  --color-fog: var(--inverse-muted);
-  --color-graphite: var(--fg-muted);
-  --color-border-dark: color-mix(in oklab, var(--inverse-fg) 16%, var(--inverse));
-  --color-border-light: var(--border);
-  /* ---- end legacy bridge ---- */
 
   --radius-sm: 0.3125rem;
   --radius-md: 0.4375rem;
@@ -340,12 +305,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Kept for screens not yet rebuilt. */
-@utility mono-data {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
-
 @utility input-field {
   width: 100%;
   height: 2.25rem;
@@ -546,17 +505,6 @@
   background-color: var(--sunken);
   border-radius: var(--radius-sm);
   animation: skeleton 1.4s ease-in-out infinite;
-}
-
-/* Kept for screens not yet rebuilt. */
-.animate-soft-pulse {
-  animation: skeleton 1.4s ease-in-out infinite;
-}
-.animate-rise-in {
-  animation: rise-in var(--dur-slow) var(--ease-out-expo) both;
-}
-.animate-score-settle {
-  animation: pop-in var(--dur-base) var(--ease-out-expo) both;
 }
 
 /* ---------- landing scene (CSS 3D) ---------- */

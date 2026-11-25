@@ -236,3 +236,47 @@ for (const theme of themes) {
     await shot(page, "lead-profile-mobile", theme, true);
   });
 }
+
+/** Remaining pages: follow-ups, team, settings, billing, sign-in, 404, invite. */
+for (const theme of themes) {
+  test(`remaining ${theme}`, async ({ page, browser }) => {
+    test.skip(!want("remaining"));
+    await mockAi(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ colorScheme: theme });
+    await page.addInitScript((t) => localStorage.setItem("theme", t), theme);
+    for (const [name, url] of [
+      ["followups", "/follow-ups"],
+      ["team", "/team"],
+      ["settings", "/settings"],
+      ["billing", "/billing"],
+    ] as const) {
+      await page.goto(url);
+      await expect(page.locator("main h1").first()).toBeVisible({ timeout: 30_000 });
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(900);
+      await shot(page, name, theme, true);
+    }
+
+    // Signed-out pages in a fresh context.
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: theme });
+    const anon = await ctx.newPage();
+    await anon.addInitScript((t) => localStorage.setItem("theme", t), theme);
+    for (const [name, url] of [
+      ["login", "/login"],
+      ["signup", "/signup"],
+      ["404", "/no-such-page"],
+      ["invite-missing", "/invite/not-a-real-token"],
+    ] as const) {
+      await anon.goto(url);
+      await anon.waitForLoadState("networkidle");
+      await anon.waitForTimeout(700);
+      await anon.screenshot({ path: path.join(dir!, `${name}-${theme}.png`) });
+    }
+    await anon.setViewportSize({ width: 390, height: 844 });
+    await anon.goto("/login");
+    await anon.waitForTimeout(700);
+    await anon.screenshot({ path: path.join(dir!, `login-mobile-${theme}.png`), fullPage: true });
+    await ctx.close();
+  });
+}
