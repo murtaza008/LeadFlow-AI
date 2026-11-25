@@ -22,11 +22,20 @@ The whole stack runs on **free tiers**: Neon Postgres, the Gemini API free key,
 Vercel Hobby, and Stripe test mode, which you can skip entirely (billing then runs
 in demo mode).
 
+| Today | Pipeline |
+| --- | --- |
+| ![Today page, light theme](public/screens/dashboard-light.png) | ![Pipeline board, dark theme](public/screens/pipeline-dark.png) |
+| **Lead profile** | **Analytics** |
+| ![Lead profile, dark theme](public/screens/lead-dark.png) | ![Analytics, light theme](public/screens/analytics-light.png) |
+
+Screenshots are taken from the live demo workspace by `npm run screens`.
+
 ---
 
 ## Contents
 
 - [Features](#features)
+- [Design system](#design-system)
 - [Tech stack](#tech-stack)
 - [Getting started](#getting-started)
 - [Environment variables](#environment-variables)
@@ -37,6 +46,8 @@ in demo mode).
 - [Multi-tenancy and security](#multi-tenancy-and-security)
 - [Billing](#billing)
 - [API routes](#api-routes)
+- [Testing](#testing)
+- [Performance](#performance)
 - [Project structure](#project-structure)
 - [Deploying to Vercel](#deploying-to-vercel)
 - [Known limitations](#known-limitations)
@@ -47,16 +58,41 @@ in demo mode).
 
 | Area | What you get |
 | --- | --- |
-| **Dashboard** | Stat cards (hot leads, open pipeline value, average score, win rate), an AI **"Focus today"** digest, and a priority-leads list |
-| **Leads** | Searchable lead table with stage filter; add leads (name, company, title, email, phone, source, deal value, notes) |
-| **Lead profile** | AI score badge with priority (Hot / Warm / Cold) and reasons, **Score / Re-score with AI**, AI **customer insight + next action**, edit details and owner, stage selector, activity timeline, log notes / emails / calls, linked follow-ups, delete |
-| **Pipeline** | Drag-and-drop kanban (`@dnd-kit`) across New → Contacted → Qualified → Won / Lost; moving a card triggers automations |
-| **Follow-ups** | Every follow-up in the workspace grouped into Overdue / Upcoming / Done, tick to complete |
-| **Analytics** | Stage funnel (count and value), lead-source mix, score distribution, 8-week created-vs-won trend, totals and win rate (Recharts) |
-| **Team** | Member list with roles (Owner / Admin / Member), invite by email with a role |
-| **Billing** | Starter (free) / Team ($79) / Agency ($199) plans via Stripe Checkout + Customer Portal, or instant **demo mode** with no Stripe keys |
-| **Settings** | Workspace name and brand colour |
-| **Marketing site** | Landing page with hero, feature cards, before/after, social proof, pricing, FAQ and CTA, animated with `motion` |
+| **Today** | Personal greeting, a ledger of key numbers (open pipeline, hot leads still open, won in the last 30 days vs the 30 before, due today) with the breakdown behind each on hover, Gemini's focus picks, due and overdue follow-ups you can tick off, "needs attention" (hot leads nobody contacted, qualified deals with no task, deals quiet 14+ days, unscored leads), open deals by stage and team activity |
+| **Leads** | Search, stage and tier filters, sort by score, value, newest or last change; a table with owner, next follow-up and last change (cards on phones); hover a name to preview the lead |
+| **Lead profile** | Stage stepper, timeline grouped by day with a note / call / email composer, AI score with reasons, AI insight and next step, follow-ups, details and notes, edit and delete |
+| **Pipeline** | Five columns with value totals; drag cards with mouse, touch or keyboard, or use each card's "Move to" menu; a toast names the follow-up the rules booked, with Undo; instant search and owner filters |
+| **Follow-ups** | Overdue / due today / upcoming / done, filter by email, call or task, tick to complete |
+| **Analytics** | 30 / 90 days or 12 months: leads added and deals won per week or month, period-over-period comparisons, pipeline by stage, sources with win rate, AI score spread, biggest open deals and a per-owner table. Every chart has a table view |
+| **Team** | Members with roles and owned deals, pending invites with a copy-link button, invite form for Owners and Admins |
+| **Billing / Settings** | Plan rows with Stripe Checkout and Portal (Owners and Admins); workspace name and brand colour; theme |
+| **Everywhere** | Ctrl/Cmd+K command palette (pages, leads, actions), notifications built from real workspace events, light / dark / system themes, mobile navigation drawer |
+| **Landing page** | A CSS 3D scroll story of the demo workspace's 35 leads (capture, score, focus, pipeline, follow-ups), live demos that run the app's own rules, real screenshots, honest pricing |
+
+---
+
+## Design system
+
+- **One accent, calm surfaces.** Ochre (`#8a5d00` light, `#e3a940` dark) on cool graphite
+  greys. Every colour is a CSS variable with a light and a dark value in
+  [`app/globals.css`](app/globals.css); Tailwind utilities read the variable, so one class
+  works in both themes. The app sidebar is a dark graphite rail in both themes.
+- **Lead heat has its own scale.** Hot = vermilion, Warm = ochre, Cold = slate. Errors,
+  overdue and delete use crimson, a clearly different hue from the accent.
+- **Contrast is checked, not guessed.** `npm run check:contrast` tests every
+  text/background pair in both themes against WCAG AA (4.5:1, 3:1 for icons and large text).
+- **Charts** use a fixed categorical order (ochre, blue, rose) validated for colour-blind
+  separation, one y-axis, bars that grow from the baseline, rich tooltips and a table view.
+  They are small SVG components, not a chart library.
+- **Depth** comes from 1px borders, layered surfaces (bg, surface, surface-2) and small
+  shadows, with an inset top highlight in dark mode. No gradients, glass or glow.
+- **Motion helps, never decorates.** Expo-out easing, 150 to 450 ms. Page changes use view
+  transitions; numbers count up (final value in `data-value`); lists rise in, capped at
+  15 items; buttons press. Feedback runs outside React with the Web Animations API, on
+  pointer input only. Everything is off with `prefers-reduced-motion`.
+- **Themes** (light, dark, system) are applied before first paint; switching reveals the
+  new theme in a circle from the toggle. Printed pages stay light.
+- **Type:** Bricolage Grotesque for headings, Geist for text, Geist Mono for numbers and labels.
 
 ---
 
@@ -64,14 +100,16 @@ in demo mode).
 
 | Layer | Choice |
 | --- | --- |
-| Framework | Next.js 16 (App Router, Route Handlers, `proxy.ts`), React 19, TypeScript 5 |
-| Styling | Tailwind CSS v4, Radix UI primitives, `class-variance-authority`, `motion`, lucide-react, sonner toasts |
+| Framework | Next.js 16 (App Router, Route Handlers, `proxy.ts`, React view transitions), React 19, TypeScript 5 (strict) |
+| Styling | Tailwind CSS v4 with CSS-variable tokens, Radix UI primitives, `class-variance-authority`, lucide-react, sonner toasts, next-themes |
+| Motion | CSS and the Web Animations API in the app; `motion` (LazyMotion) and Lenis on the landing page only |
 | Database | Neon serverless Postgres, Prisma 7 via `@prisma/adapter-neon` (WebSocket driver) |
 | Auth | Auth.js (NextAuth v5), Credentials provider, bcrypt (12 rounds), JWT sessions |
-| AI | Vercel AI SDK (`ai`, `@ai-sdk/google`), Gemini `gemini-flash-latest`, structured output with `generateObject` + zod |
-| Data fetching | TanStack Query against the app's own Route Handlers |
-| Charts / DnD | Recharts, `@dnd-kit/core` |
-| Payments | Stripe Checkout, Billing Portal and webhooks (test mode), with a demo-mode fallback |
+| AI | Vercel AI SDK (`ai`, `@ai-sdk/google`), Gemini `gemini-flash-latest` with a `gemini-flash-lite-latest` fallback, structured output with `generateObject` + zod |
+| Data fetching | TanStack Query against the app's own Route Handlers, shared query keys for hover prefetch |
+| Drag and drop | `@dnd-kit/core` (pointer, touch and keyboard sensors) |
+| Payments | Stripe Checkout, Billing Portal and webhooks (test mode only), with a demo-mode fallback |
+| Tests | Vitest (logic and API routes), Playwright + axe-core (end to end and accessibility) |
 
 ---
 
@@ -144,7 +182,14 @@ and add your first lead. Open the lead and click **Score with AI** to run Gemini
 | `npm run dev` | Dev server on http://localhost:3000 |
 | `npm run build` | `prisma migrate deploy && next build` (applies pending migrations first) |
 | `npm start` | Serve the production build |
-| `npm run lint` | ESLint |
+| `npm run lint` / `npm run typecheck` | ESLint / `tsc --noEmit` |
+| `npm test` | Vitest unit and API-route tests |
+| `npm run test:e2e` | Playwright end-to-end and accessibility tests (needs a build) |
+| `npm run check:contrast` | WCAG AA check of every colour pair in both themes |
+| `npm run verify` | All of the above, in order |
+| `npm run screens` | Regenerate the README and landing screenshots from the demo workspace |
+| `npm run bundle:report` | First-load JS per route against a running server |
+| `npm run seed:demo` | Build or rebuild the public demo workspace |
 
 ---
 
@@ -227,7 +272,14 @@ retires dated model versions.
 | --- | --- | --- |
 | **Lead scoring** (`scoreLead`) | `POST /api/leads/[id]/score` | Title, company, source, deal value, stage and notes → `score` 0–100, `priority` HOT/WARM/COLD, one-line summary and 2–4 reasons. Saved on the lead and logged to its timeline |
 | **Customer insights** (`generateCustomerInsights`) | `POST /api/leads/[id]/insights` | The lead plus its recent activity → one sharp insight and one concrete next action, saved on the lead |
-| **Daily focus** (`recommendDailyFocus`) | `GET /api/recommendations` | The workspace's top 25 open leads → the 3–5 to work today with a reason each. Ids the model returns are checked against the input list, so it cannot invent a lead. Picks are cached on the workspace for 6 hours |
+| **Daily focus** (`recommendDailyFocus`) | `GET /api/recommendations` | The workspace's top 25 open leads → up to 5 to work today with a reason each. Ids the model returns are checked against the input list ([`lib/focus.ts`](lib/focus.ts)), so it cannot invent a lead. Picks are cached on the workspace for 6 hours |
+
+**When Gemini is busy or slow.** The main model gets 10 seconds. If it times out or Google
+answers 429 or 5xx, the same request goes to `gemini-flash-lite-latest` (also free). Real
+errors such as a 400 are not hidden: the API returns 502 with Gemini's message, and "both
+models busy" comes back as 503 with a plain explanation, shown inline on the lead. A cancel
+from the caller is respected. Unit tests cover the busy, slow, bad-request and cancel cases
+([`tests/unit/gemini-fallback.test.ts`](tests/unit/gemini-fallback.test.ts)).
 
 ---
 
@@ -262,11 +314,14 @@ Rule-based and synchronous, so no queue, worker or cron is needed
 
 ## Billing
 
-| Plan | Price | Listed features |
+| Plan | Price | What it includes |
 | --- | --- | --- |
-| Starter | $0 | 500 leads / mo, 1 seat, AI scoring, manual follow-ups |
-| Team | $79 / mo | 10,000 leads / mo, 5 seats, automated follow-ups, analytics, AI daily focus |
-| Agency | $199 / mo | Unlimited leads, 20 seats, custom scoring weights, priority support |
+| Starter | $0 | Every feature |
+| Team | $79 / mo | Every feature |
+| Agency | $199 / mo | Every feature |
+
+No feature is gated and no lead or seat limit is enforced by plan, so the pricing copy
+([`lib/plans.ts`](lib/plans.ts)) says exactly that. Only Owners and Admins can change the plan.
 
 - **Demo mode (no Stripe keys):** choosing a plan updates the workspace instantly
   with no checkout, so the whole product is clickable without a Stripe account.
@@ -291,7 +346,9 @@ Rule-based and synchronous, so no queue, worker or cron is needed
 | `GET` | `/api/workspaces/current` | Current workspace and the caller's role |
 | `PATCH` | `/api/workspaces/[id]` | Rename / change brand colour (Owner, Admin) |
 | `GET` | `/api/workspaces/[id]/members` | Members with roles |
-| `GET` `POST` | `/api/workspaces/[id]/invites` | Pending invites / create an invite (Owner, Admin) |
+| `GET` | `/api/workspaces/[id]/summary` | Live counts for the navigation hover cards (any member) |
+| `GET` | `/api/workspaces/[id]/activity` | Notifications feed: teammates' stage changes, AI scores, calls and emails, overdue follow-ups and new members (last 14 days) |
+| `GET` `POST` | `/api/workspaces/[id]/invites` | Pending invites (the invite-link token only for Owners and Admins) / create an invite (Owner, Admin) |
 | `GET` `POST` | `/api/invites/[token]` | Read an invite / accept it |
 | `GET` `POST` | `/api/leads` | List leads (by score) / create a lead (runs the "lead created" automation) |
 | `GET` `PATCH` `DELETE` | `/api/leads/[id]` | Lead with activities and follow-ups / update (stage change runs automations) / delete |
@@ -301,7 +358,7 @@ Rule-based and synchronous, so no queue, worker or cron is needed
 | `GET` | `/api/recommendations` | AI daily focus picks |
 | `GET` | `/api/followups` | All follow-ups in the workspace |
 | `PATCH` | `/api/followups/[id]` | Mark done / not done |
-| `GET` | `/api/analytics` | Funnel, sources, score distribution, weekly trend, totals |
+| `GET` | `/api/analytics?days=30\|90\|365` | Funnel, sources with win rate, score spread, trend, this period vs the previous one (close dates from the timeline), biggest open deals, per-owner totals |
 | `POST` | `/api/billing/checkout` | Start Stripe Checkout (or switch plan in demo mode) |
 | `POST` | `/api/billing/portal` | Open the Stripe Customer Portal |
 | `POST` | `/api/webhooks/stripe` | Stripe webhook receiver |
@@ -310,55 +367,101 @@ Rule-based and synchronous, so no queue, worker or cron is needed
 
 ---
 
+## Testing
+
+```bash
+npm run verify      # contrast, lint, typecheck, unit tests, build, end-to-end
+```
+
+- **Unit and API tests (Vitest, `tests/unit`).** The pure rules shared by the app and the
+  landing demos (follow-up automations, focus candidates, analytics), the Gemini fallback,
+  and the newer API routes: signed out (401), not a member (403), workspace scoping, roles
+  (invite tokens only for Owners and Admins), demo guardrails and bad input (400).
+- **End to end (Playwright, `tests/e2e`).** Public pages, the landing story and its live
+  demos (including with JavaScript off and with reduced motion), the app shell, Today,
+  Analytics, the pipeline, leads and lead profile, and every remaining page.
+- **Accessibility.** An axe WCAG 2.1 AA scan of every page and every dialog, menu, hover
+  card and drawer, in both themes, after animations finish. A check also fails if a page
+  scrolls sideways at 390px.
+- **Which database.** Signed-in tests use the shared demo account on the database in
+  `.env`, read-only: nothing is dragged, submitted, ticked or deleted, and the AI routes
+  are answered locally, so no Gemini calls are made. Two workers, one retry and a warm-up
+  step keep the remote database from causing timeouts.
+- **Review screenshots.** `SCREENS_DIR=./shots SCREENS=shell,landing,data,workflow,remaining
+  npx playwright test --project=screens` captures every screen in light and dark, with
+  menus, hover cards, a mid-drag frame and phone width.
+
+---
+
+## Performance
+
+First-load JavaScript per route (gzip), measured with `npm run bundle:report` against a
+production build, before the redesign and after it.
+
+| Route | Before | After | Change |
+| --- | ---: | ---: | ---: |
+| `/` | 266.4 kB | 290.8 kB | +24.4 kB |
+| `/login` | 261.6 kB | 239.3 kB | -22.3 kB |
+| `/signup` | 261.6 kB | 239.3 kB | -22.3 kB |
+| `/this-page-does-not-exist` | 201.9 kB | 225.8 kB | +23.9 kB |
+| `/dashboard` | 281.2 kB | 298.3 kB | +17.1 kB |
+| `/leads` | 266.4 kB | 304.3 kB | +37.9 kB |
+| `/leads/demo-lead-01` | 315.2 kB | 307.3 kB | -7.9 kB |
+| `/pipeline` | 266.3 kB | 309.3 kB | +43.0 kB |
+| `/follow-ups` | 252.7 kB | 295.1 kB | +42.4 kB |
+| `/analytics` | 358.1 kB | 297.0 kB | -61.1 kB |
+| `/team` | 263.8 kB | 294.0 kB | +30.2 kB |
+| `/billing` | 252.5 kB | 291.6 kB | +39.1 kB |
+| `/settings` | 253.9 kB | 292.6 kB | +38.7 kB |
+
+- Analytics is about 61 kB lighter: Recharts was replaced by small SVG chart components.
+  date-fns, tw-animate-css and several unused Radix packages are gone too.
+- The 3D landing scene and the command palette are separate chunks, loaded on demand
+  (the scene when the story scrolls into view, the palette on first Ctrl/Cmd+K or when idle).
+- The app pages carry a richer shell than before (live hover previews, notifications,
+  account menu, theme switch), which is most of their increase.
+- After sign-in, every page's code is prefetched while the browser is idle; hovering a nav
+  item also prefetches that page's data.
+
+---
+
 ## Project structure
 
 ```
 app/
-  page.tsx                  Marketing landing page
-  login/ signup/            Auth pages
-  onboarding/               Create your workspace
-  invite/[token]/           Accept a team invite
-  (dashboard)/              Signed-in app (Shell + Sidebar layout)
-    dashboard/              Stat cards, AI "Focus today", priority leads
-    leads/                  Lead table; leads/[id] is the customer profile
-    pipeline/               Drag-and-drop kanban
-    follow-ups/             Overdue / upcoming / done
-    analytics/              Charts
-    team/ billing/ settings/
+  page.tsx                  Landing page (CSS 3D story, live demos, pricing, FAQ)
+  login/ signup/            Auth pages; onboarding/; invite/[token]/; not-found; error
+  (dashboard)/              Signed-in app: dashboard (Today), leads, leads/[id], pipeline,
+                            follow-ups, analytics, team, billing, settings
   api/                      Route handlers (see API routes)
 components/
-  ui/                       Radix-based primitives (button, dialog, select, table, tabs, …)
-  landing/                  Landing page sections
-  dashboard/                Shell, Sidebar, Topbar
-  leads/                    LeadFormDialog, ScoreBadge
-  motion/                   Reveal, CountUp
-  auth/                     Shared login / sign-up form
+  ui/                       Primitives: button, dialog/sheet, menu, select, segmented,
+                            hover-card, animated-number, primitives (panel, badge, ...)
+  dashboard/                Shell, Sidebar (rail), AppBar, CommandPalette, Notifications,
+                            UserMenu, nav
+  data/ charts/             Ledger, Delta; ColumnChart, BarRows, ChartPanel (chart/table)
+  leads/                    LeadFormDialog, LeadHoverCard, ScoreBadge
+  landing/                  Nav, Footer, Story + scene/ (CSS 3D), demos/, ScreenTabs, TiltShot
+  auth/ demo/ layout/ brand/
 lib/
-  gemini.ts                 AI scoring, insights, daily focus
-  automations.ts            Follow-up rules
-  workspace.ts              Tenant resolution and role checks
-  auth.ts, auth.config.ts   Auth.js (full config / edge-safe config)
-  demo.ts, demo-data.ts,     Public demo account: constants, seeded content,
-  demo-seed.ts, demo-limits.ts  reset logic, hourly AI cap
-  prisma.ts, stripe.ts, plans.ts, serialize.ts, format.ts, handle-error.ts
-  hooks/                    TanStack Query hooks
-  generated/prisma/         Generated Prisma client (do not edit)
-prisma/
-  schema.prisma             Data model
-  migrations/               SQL migrations
-  seed-demo.ts              `npm run seed:demo`: rebuild the demo workspace
-scripts/
-  seed-leads.ts             Demo pipeline seeder
-  check-seed.ts             Read-only check of seeded data
-proxy.ts                    Route protection
-vercel.json                 Daily demo-reset cron
+  automation-rules.ts       Follow-up rules (pure; used by the API and the landing demo)
+  focus.ts                  Focus candidates and pick checks (pure)
+  analytics-calc.ts         Analytics maths (pure)
+  automations.ts            Writes the rules' follow-ups and timeline entries
+  gemini.ts                 AI scoring, insights, daily focus, timeout + fallback
+  activity.ts, workspace-summary.ts   Notifications feed and nav counts
+  queries.ts                Shared TanStack Query keys and fetchers
+  workspace.ts, session.ts, auth*.ts, demo*.ts, plans.ts, stripe.ts, press.ts, time.ts, ...
+scripts/                    check-contrast, bundle-report, screens, seed scripts
+tests/unit/ tests/e2e/      Vitest and Playwright suites
+prisma/                     Schema, migrations, demo seed
 ```
 
 ### Data model
 
 `User` ─< `WorkspaceMember` >─ `Workspace` ─< `Lead` ─< `Activity` / `FollowUp`,
-plus `WorkspaceInvite`. Enums: `Role` (OWNER, ADMIN, MEMBER), `WorkspacePlan`
-(FREE, TEAM, AGENCY), `LeadStatus` (NEW, CONTACTED, QUALIFIED, WON, LOST),
+plus `WorkspaceInvite` and `DemoUsage`. Enums: `Role` (OWNER, ADMIN, MEMBER),
+`WorkspacePlan` (FREE, TEAM, AGENCY), `LeadStatus` (NEW, CONTACTED, QUALIFIED, WON, LOST),
 `LeadPriority` (HOT, WARM, COLD), `ActivityType`, `FollowUpType`.
 
 ---
@@ -389,13 +492,12 @@ The app deploys to the free Hobby tier with no extra configuration.
 
 ## Known limitations
 
-- **Invites are not emailed.** Creating an invite stores it (valid 14 days), but no
-  email is sent and the UI does not show the link. The invitee needs the URL
-  `/invite/<token>`, where the token is on the `WorkspaceInvite` row.
-- **Plan limits are not enforced.** Lead and seat limits on the pricing table are
-  plan copy; the API does not cap them.
-- **One workspace per user**, and there is no UI to remove members or change roles yet.
-- **No manual follow-up creation.** Follow-ups come from the automations (and the
-  seed script); you can complete them but not add your own yet.
-- **Free-tier Gemini** has per-minute rate limits; scoring many leads quickly can
-  return a rate-limit error. Wait a moment and retry.
+- **Invites are not emailed.** Creating an invite stores it (valid 14 days); Owners and
+  Admins copy its link from the Team page and send it themselves.
+- **Plan limits are not enforced.** Every plan includes every feature, and the pricing says so.
+- **One workspace per user**, and there is no way yet to remove members or change roles
+  (the API doesn't support it).
+- **No manual follow-up creation.** Follow-ups come from the automations (and the seed
+  scripts); you can complete them but not add your own yet.
+- **Free-tier Gemini** has per-minute limits. The app falls back to a lighter model when the
+  main one is busy; if both are busy it says so and you can retry a minute later.

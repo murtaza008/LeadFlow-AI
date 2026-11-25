@@ -3,7 +3,11 @@ import { ImageResponse } from "next/og";
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 
+/** The LeadFlow mark: three bars getting shorter (a ranked list) on ochre. */
 export default function Icon() {
+  const bar = (width: number, opacity: number) => (
+    <div style={{ width, height: 4, borderRadius: 2, background: "#ffffff", opacity }} />
+  );
   return new ImageResponse(
     (
       <div
@@ -11,17 +15,17 @@ export default function Icon() {
           width: "100%",
           height: "100%",
           display: "flex",
-          alignItems: "center",
+          flexDirection: "column",
           justifyContent: "center",
-          background: "#00c27c",
-          borderRadius: 7,
-          fontSize: 20,
-          fontWeight: 700,
-          color: "#ffffff",
-          fontFamily: "sans-serif",
+          gap: 3,
+          paddingLeft: 7,
+          background: "#8a5d00",
+          borderRadius: 8,
         }}
       >
-        L
+        {bar(18, 1)}
+        {bar(13, 0.85)}
+        {bar(8, 0.7)}
       </div>
     ),
     { ...size },

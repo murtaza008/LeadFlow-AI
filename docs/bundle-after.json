@@ -1,0 +1,80 @@
+[
+  {
+    "route": "/",
+    "status": 200,
+    "scripts": 16,
+    "kb": 290.8
+  },
+  {
+    "route": "/login",
+    "status": 200,
+    "scripts": 15,
+    "kb": 239.3
+  },
+  {
+    "route": "/signup",
+    "status": 200,
+    "scripts": 15,
+    "kb": 239.3
+  },
+  {
+    "route": "/this-page-does-not-exist",
+    "status": 404,
+    "scripts": 14,
+    "kb": 225.8
+  },
+  {
+    "route": "/dashboard",
+    "status": 200,
+    "scripts": 21,
+    "kb": 298.3
+  },
+  {
+    "route": "/leads",
+    "status": 200,
+    "scripts": 22,
+    "kb": 304.3
+  },
+  {
+    "route": "/leads/demo-lead-01",
+    "status": 200,
+    "scripts": 22,
+    "kb": 307.3
+  },
+  {
+    "route": "/pipeline",
+    "status": 200,
+    "scripts": 22,
+    "kb": 309.3
+  },
+  {
+    "route": "/follow-ups",
+    "status": 200,
+    "scripts": 21,
+    "kb": 295.1
+  },
+  {
+    "route": "/analytics",
+    "status": 200,
+    "scripts": 21,
+    "kb": 297
+  },
+  {
+    "route": "/team",
+    "status": 200,
+    "scripts": 21,
+    "kb": 294
+  },
+  {
+    "route": "/billing",
+    "status": 200,
+    "scripts": 21,
+    "kb": 291.6
+  },
+  {
+    "route": "/settings",
+    "status": 200,
+    "scripts": 21,
+    "kb": 292.6
+  }
+]
