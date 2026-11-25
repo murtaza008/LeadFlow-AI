@@ -55,6 +55,11 @@ const pairs = [
   ["accent", "surface", 3],
   ["accent-text", "surface-2", 4.5],
   ["fg-muted", "sunken", 4.5],
+  ...["rail", "rail-hover", "rail-active"].flatMap((bg) => [
+    ["rail-fg", bg, 4.5],
+    ["rail-muted", bg, 4.5],
+    ["rail-accent", bg, 4.5],
+  ]),
   ["danger-text", "danger-soft", 4.5],
   ["danger-text", "surface", 4.5],
   ["danger-fg", "danger", 4.5],

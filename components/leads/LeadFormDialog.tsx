@@ -55,9 +55,20 @@ function formFrom(lead: Lead): typeof EMPTY_FORM {
 }
 
 /** Add a lead, or edit one when `lead` is given. */
-export function LeadFormDialog({ trigger, lead }: { trigger: ReactNode; lead?: Lead }) {
+export function LeadFormDialog({
+  trigger,
+  lead,
+  defaultOpen = false,
+  onClosed,
+}: {
+  /** Omit to open the dialog only through `defaultOpen` (e.g. from a URL). */
+  trigger?: ReactNode;
+  lead?: Lead;
+  defaultOpen?: boolean;
+  onClosed?: () => void;
+}) {
   const editing = Boolean(lead);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [form, setForm] = useState(EMPTY_FORM);
   const create = useCreateLead();
   const update = useUpdateLead();
@@ -72,6 +83,7 @@ export function LeadFormDialog({ trigger, lead }: { trigger: ReactNode; lead?: L
   function onOpenChange(next: boolean) {
     if (next) setForm(lead ? formFrom(lead) : EMPTY_FORM);
     setOpen(next);
+    if (!next) onClosed?.();
   }
 
   async function onSubmit(e: FormEvent) {
@@ -109,6 +121,7 @@ export function LeadFormDialog({ trigger, lead }: { trigger: ReactNode; lead?: L
         toast.success(`${form.name.trim()} added to leads`);
       }
       setOpen(false);
+      onClosed?.();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : editing ? "Could not update lead" : "Could not add lead");
     }
@@ -116,7 +129,7 @@ export function LeadFormDialog({ trigger, lead }: { trigger: ReactNode; lead?: L
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>{editing ? "Edit lead" : "Add a lead"}</DialogTitle>

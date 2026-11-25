@@ -1,6 +1,7 @@
 import { google } from "@ai-sdk/google";
 import { generateObject } from "ai";
 import { z } from "zod";
+import { FOCUS_MAX_PICKS, keepKnownPicks } from "@/lib/focus";
 
 /** Free-tier Gemini flash model used for all AI features below.
  * "gemini-flash-latest" is a rolling alias to Google's current flash model,
@@ -108,7 +109,7 @@ const FocusSchema = z.object({
       }),
     )
     .min(1)
-    .max(5),
+    .max(FOCUS_MAX_PICKS),
 });
 
 /** Ranks a workspace's open leads and returns the top few to focus on today. */
@@ -130,6 +131,5 @@ export async function recommendDailyFocus(
       "You are a sales manager triaging today's pipeline. Pick the leads a rep should focus on today — highest score/value/urgency first — and give one short reason each. Only return ids from the provided list.",
     prompt: `Open leads:\n${list}`,
   });
-  const validIds = new Set(leads.map((l) => l.id));
-  return object.picks.filter((p) => validIds.has(p.leadId)).slice(0, 5);
+  return keepKnownPicks(object.picks, leads);
 }

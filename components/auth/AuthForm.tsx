@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { motion } from "motion/react";
 import { signIn } from "next-auth/react";
-import { TryDemoButton } from "./TryDemoButton";
+import { TryDemoButton } from "@/components/demo/TryDemoButton";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 

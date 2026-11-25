@@ -60,6 +60,13 @@
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-other: var(--chart-other);
+  --color-rail: var(--rail);
+  --color-rail-fg: var(--rail-fg);
+  --color-rail-muted: var(--rail-muted);
+  --color-rail-hover: var(--rail-hover);
+  --color-rail-active: var(--rail-active);
+  --color-rail-border: var(--rail-border);
+  --color-rail-accent: var(--rail-accent);
 
   /* ---- Legacy bridge (removed once every screen is redesigned) ----
      Old class names point at the new variables, so screens that haven't been
@@ -151,6 +158,14 @@
   --chart-2: #3f68c4;
   --chart-3: #c0457a;
   --chart-other: #868c94;
+  /* The app sidebar is a dark graphite rail in both themes. */
+  --rail: #15181c;
+  --rail-fg: #eef0f2;
+  --rail-muted: #a3aab2;
+  --rail-hover: #1f2328;
+  --rail-active: #2a2f36;
+  --rail-border: #2a2f36;
+  --rail-accent: #e3a940;
 }
 
 :root {
@@ -204,6 +219,13 @@
   --chart-2: #5f86dc;
   --chart-3: #d4628c;
   --chart-other: #707780;
+  --rail: #08090b;
+  --rail-fg: #eceef1;
+  --rail-muted: #9da4ac;
+  --rail-hover: #14171b;
+  --rail-active: #1e2228;
+  --rail-border: #1c2025;
+  --rail-accent: #e8b456;
 }
 
 .dark {
@@ -535,6 +557,94 @@
 }
 .animate-score-settle {
   animation: pop-in var(--dur-base) var(--ease-out-expo) both;
+}
+
+/* ---------- landing scene (CSS 3D) ---------- */
+
+/* One lead. --heat (0..1) fades in the tier colour and score once scored. */
+.scene-lead {
+  --heat: 0;
+  --hc: var(--cold);
+  --hc-text: var(--cold-text);
+  --hc-soft: var(--cold-soft);
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.06);
+  overflow: hidden;
+  padding: 0 calc(var(--u) * 0.06) 0 calc(var(--u) * 0.1);
+  border-radius: calc(var(--u) * 0.05);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 8px 18px -10px rgba(0, 0, 0, 0.28);
+  backface-visibility: visible;
+  will-change: transform, opacity;
+  cursor: default;
+}
+.dark .scene-lead {
+  box-shadow: inset 0 1px 0 var(--highlight), 0 10px 22px -12px rgba(0, 0, 0, 0.75);
+}
+.scene-lead[data-heat="hot"] {
+  --hc: var(--hot);
+  --hc-text: var(--hot-text);
+  --hc-soft: var(--hot-soft);
+}
+.scene-lead[data-heat="warm"] {
+  --hc: var(--accent);
+  --hc-text: var(--accent-text);
+  --hc-soft: var(--accent-soft);
+}
+.scene-lead::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--u) * 0.035);
+  background: var(--hc);
+  opacity: var(--heat);
+}
+.scene-lead-name {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: max(9px, calc(var(--u) * 0.1));
+  font-weight: 600;
+  color: var(--fg);
+}
+.scene-lead-score {
+  flex-shrink: 0;
+  border-radius: calc(var(--u) * 0.03);
+  padding: calc(var(--u) * 0.008) calc(var(--u) * 0.03);
+  font-family: var(--font-mono);
+  font-size: max(9px, calc(var(--u) * 0.095));
+  font-variant-numeric: tabular-nums;
+  background: var(--hc-soft);
+  color: var(--hc-text);
+  opacity: var(--heat);
+}
+.scene-chip {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 0.04);
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0 calc(var(--u) * 0.05);
+  border-radius: calc(var(--u) * 0.04);
+  border: 1px dashed var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: max(9px, calc(var(--u) * 0.08));
+  font-weight: 500;
+  will-change: transform, opacity;
+}
+.scene-label {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  font-size: max(9px, calc(var(--u) * 0.085));
+  color: var(--fg-muted);
+  will-change: transform, opacity;
 }
 
 /* Radix popovers / hover cards / menus / selects */

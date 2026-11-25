@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Search } from "lucide-react";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 type StatusFilter = Status | "ALL";
 
+/** Opens "Add a lead" when the URL has ?new=1 (sidebar button, command palette). */
+function NewLeadFromUrl() {
+  const params = useSearchParams();
+  const router = useRouter();
+  if (params.get("new") !== "1") return null;
+  return <LeadFormDialog key={params.toString()} defaultOpen onClosed={() => router.replace("/leads", { scroll: false })} />;
+}
+
 export default function LeadsPage() {
   const { data: leads = [], isLoading } = useLeads();
   const [query, setQuery] = useState("");
@@ -43,6 +52,9 @@ export default function LeadsPage() {
 
   return (
     <>
+      <Suspense fallback={null}>
+        <NewLeadFromUrl />
+      </Suspense>
       <Topbar
         title="Leads"
         action={

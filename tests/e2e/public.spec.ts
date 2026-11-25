@@ -11,8 +11,6 @@ const publicPages = [
 for (const theme of themes) {
   for (const p of publicPages) {
     test(`${p.label} is accessible in ${theme}`, async ({ page }) => {
-      // Phase 1 only: the old landing page is replaced in phase 2, which re-enables this scan.
-      test.fixme(p.path === "/", "old landing page, rebuilt in phase 2");
       await useTheme(page, theme);
       await page.goto(p.path);
       await expect(page.locator("h1").first()).toBeVisible();

@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import path from "node:path";
+import { mkdirSync } from "node:fs";
 import { mockAi, themes, type Theme } from "./helpers";
 
 /**
@@ -50,7 +51,7 @@ for (const theme of themes) {
       await shot(page, "shell-notifications", theme);
       await page.keyboard.press("Escape");
 
-      await page.getByRole("button", { name: "Account menu" }).click();
+      await page.getByRole("button", { name: /account menu/i }).click();
       await page.waitForTimeout(300);
       await shot(page, "shell-user-menu", theme);
       await page.keyboard.press("Escape");
@@ -68,5 +69,81 @@ for (const theme of themes) {
       await page.waitForTimeout(500);
       await shot(page, "shell-mobile-drawer", theme);
     });
+  });
+}
+
+/**
+ * App screenshots for the landing page and README, written to public/screens.
+ * Run with SCREENS=marketing (see scripts/screens.mjs).
+ */
+for (const theme of themes) {
+  test(`marketing ${theme}`, async ({ page }) => {
+    test.skip(!want("marketing"));
+    const out = path.join(process.cwd(), "public", "screens");
+    mkdirSync(out, { recursive: true });
+    await mockAi(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
+    await page.addInitScript((t) => localStorage.setItem("theme", t), theme);
+
+    for (const [name, url] of [
+      ["dashboard", "/dashboard"],
+      ["pipeline", "/pipeline"],
+      ["lead", "/leads/demo-lead-01"],
+      ["analytics", "/analytics"],
+    ] as const) {
+      await page.goto(url);
+      await expect(page.locator("main h1").first()).toBeVisible({ timeout: 30_000 });
+      await page.waitForLoadState("networkidle");
+      await page.waitForTimeout(1200);
+      await page.mouse.move(1430, 890);
+      await page.screenshot({ path: path.join(out, `${name}-${theme}.png`) });
+    }
+  });
+}
+
+/** Landing review shots: hero, every story stage, a tooltip, the demos and mobile. */
+for (const theme of themes) {
+  test(`landing ${theme}`, async ({ page }) => {
+    test.skip(!want("landing"));
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ colorScheme: theme });
+    await page.addInitScript((t) => localStorage.setItem("theme", t), theme);
+    await page.goto("/");
+    await page.waitForTimeout(1500);
+    await shot(page, "landing-hero", theme);
+
+    const box = await page.evaluate(() => {
+      const el = document.getElementById("how-it-works")!;
+      return { top: el.offsetTop, h: el.offsetHeight, vh: window.innerHeight };
+    });
+    for (let s = 0; s < 5; s++) {
+      await page.evaluate((y) => window.scrollTo({ top: y, behavior: "instant" }), box.top + ((box.h - box.vh) * s) / 4);
+      await page.waitForTimeout(1600);
+      await shot(page, `landing-story-${s}`, theme);
+    }
+    await page.locator("[data-scene-card]").nth(3).hover({ force: true });
+    await page.waitForTimeout(300);
+    await shot(page, "landing-story-tooltip", theme);
+
+    for (const [id, name] of [["features", "landing-features"], ["inside", "landing-inside"], ["pricing", "landing-pricing"], ["faq", "landing-faq"]] as const) {
+      await page.evaluate((i) => document.getElementById(i)!.scrollIntoView({ behavior: "instant" }), id);
+      await page.waitForTimeout(900);
+      await shot(page, name, theme);
+    }
+    await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" }));
+    await page.waitForTimeout(900);
+    await shot(page, "landing-end", theme);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/");
+    await page.waitForTimeout(1200);
+    await shot(page, "landing-mobile", theme);
+    await page.evaluate(() => {
+      const el = document.getElementById("how-it-works")!;
+      window.scrollTo({ top: el.offsetTop + (el.offsetHeight - window.innerHeight) / 2, behavior: "instant" });
+    });
+    await page.waitForTimeout(1600);
+    await shot(page, "landing-mobile-story", theme);
   });
 }

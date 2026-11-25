@@ -93,15 +93,13 @@ export function Shell({ children }: { children: ReactNode }) {
         Skip to content
       </a>
 
-      <aside
-        className="sticky top-0 hidden h-dvh border-r border-border bg-bg lg:block"
-      >
-        <Sidebar ws={ws} />
+      <aside className="sticky top-0 hidden h-dvh bg-rail lg:block">
+        <Sidebar ws={ws} onSignOut={handleSignOut} />
       </aside>
 
       <D.Root open={navOpen} onOpenChange={setNavOpen}>
-        <SheetContent title="Navigation" className="bg-bg">
-          <Sidebar ws={ws} onNavigate={() => setNavOpen(false)} previews={false} />
+        <SheetContent title="Navigation" className="border-rail-border bg-rail [&>button]:text-rail-muted [&>button]:hover:bg-rail-hover [&>button]:hover:text-rail-fg">
+          <Sidebar ws={ws} onNavigate={() => setNavOpen(false)} onSignOut={handleSignOut} previews={false} />
         </SheetContent>
       </D.Root>
 
@@ -113,7 +111,6 @@ export function Shell({ children }: { children: ReactNode }) {
           onOpenNav={() => setNavOpen(true)}
           onOpenSearch={openSearch}
           onWarmSearch={() => void loadPalette()}
-          onSignOut={handleSignOut}
         />
         <main id="main" tabIndex={-1} className="flex-1 outline-none">
           <ViewTransition key={pathname} enter="page-in" exit="page-out" default="none">
@@ -132,7 +129,7 @@ export function Shell({ children }: { children: ReactNode }) {
 function ShellSkeleton() {
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[248px_minmax(0,1fr)]" aria-busy="true" aria-label="Loading workspace">
-      <div className="hidden h-dvh border-r border-border p-4 lg:block">
+      <div className="hidden h-dvh bg-rail p-4 lg:block">
         <Skeleton className="h-6 w-28" />
         <Skeleton className="mt-6 h-12 w-full" />
         <div className="mt-6 space-y-2.5">

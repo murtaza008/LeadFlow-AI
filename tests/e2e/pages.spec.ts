@@ -35,7 +35,7 @@ for (const theme of themes) {
     await page.keyboard.press("Escape");
 
     // Account menu
-    await page.getByRole("button", { name: "Account menu" }).click();
+    await page.getByRole("button", { name: /account menu/i }).click();
     await expect(page.getByRole("menu")).toBeVisible();
     await expectAccessible(page, `account menu (${theme})`);
     await page.keyboard.press("Escape");
