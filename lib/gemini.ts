@@ -1,13 +1,65 @@
 import { google } from "@ai-sdk/google";
-import { generateObject } from "ai";
+import { APICallError, generateObject, wrapLanguageModel, type LanguageModelMiddleware } from "ai";
 import { z } from "zod";
 import { FOCUS_MAX_PICKS, keepKnownPicks } from "@/lib/focus";
 
-/** Free-tier Gemini flash model used for all AI features below.
- * "gemini-flash-latest" is a rolling alias to Google's current flash model,
- * so this stays valid as Gemini versions are retired/replaced over time. */
+/** Free-tier Gemini models. Rolling aliases, so they stay valid as Google
+ * retires versions. When the main model is overloaded (Google returns 503
+ * "high demand", or 429 when the free quota is hit) or too slow, the same
+ * request goes to the lighter model instead of failing. */
+export const PRIMARY_MODEL = "gemini-flash-latest";
+export const FALLBACK_MODEL = "gemini-flash-lite-latest";
+
+/** How long the main model gets to answer before the fallback takes over. */
+export const PRIMARY_TIMEOUT_MS = 10_000;
+
+/** Errors worth retrying on another model: overloaded, rate limited, or a server error. */
+export function isOverloaded(error: unknown): boolean {
+  return APICallError.isInstance(error) && [429, 500, 502, 503, 504].includes(error.statusCode ?? 0);
+}
+
+type FallbackModel = Pick<ReturnType<typeof google>, "doGenerate" | "doStream">;
+type CallOptions = Parameters<FallbackModel["doGenerate"]>[0];
+
+/**
+ * Runs `call` on the main model with a time limit, and sends the same call to
+ * `fallback` when the main model is overloaded or too slow. A cancel from the
+ * caller (params.abortSignal) is never treated as overload, and real errors
+ * such as a 400 are passed through.
+ */
+async function withFallback<T>(
+  params: CallOptions,
+  primary: (params: CallOptions) => PromiseLike<T>,
+  fallback: (params: CallOptions) => PromiseLike<T>,
+  timeoutMs: number,
+): Promise<T> {
+  const timeout = new AbortController();
+  const signal = params.abortSignal ? AbortSignal.any([params.abortSignal, timeout.signal]) : timeout.signal;
+  const timer = setTimeout(() => timeout.abort(new Error("primary model timed out")), timeoutMs);
+  try {
+    return await primary({ ...params, abortSignal: signal });
+  } catch (error) {
+    if (params.abortSignal?.aborted) throw error;
+    if (!timeout.signal.aborted && !isOverloaded(error)) throw error;
+    console.warn(`[gemini] ${PRIMARY_MODEL} ${timeout.signal.aborted ? "too slow" : "unavailable"}, using ${FALLBACK_MODEL}`);
+    return fallback(params);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** Sends the call to `fallback` when the wrapped model is overloaded or too slow. */
+export function fallbackMiddleware(fallback: FallbackModel, timeoutMs = PRIMARY_TIMEOUT_MS): LanguageModelMiddleware {
+  return {
+    wrapGenerate: ({ model, params }) =>
+      withFallback(params, (p) => model.doGenerate(p), (p) => fallback.doGenerate(p), timeoutMs),
+    wrapStream: ({ model, params }) =>
+      withFallback(params, (p) => model.doStream(p), (p) => fallback.doStream(p), timeoutMs),
+  };
+}
+
 function model() {
-  return google("gemini-flash-latest");
+  return wrapLanguageModel({ model: google(PRIMARY_MODEL), middleware: fallbackMiddleware(google(FALLBACK_MODEL)) });
 }
 
 export function isAiConfigured(): boolean {

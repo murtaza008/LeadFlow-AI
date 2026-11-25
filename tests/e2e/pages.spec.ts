@@ -58,7 +58,7 @@ for (const theme of themes) {
 }
 
 /** Redesigned pages never scroll sideways at phone width (16px gutters, no page-level horizontal scroll). */
-for (const path of ["/dashboard", "/analytics"]) {
+for (const path of ["/dashboard", "/analytics", "/leads", "/leads/demo-lead-01", "/pipeline"]) {
   test(`${path} fits a 390px screen`, async ({ page }) => {
     await useTheme(page, "light");
     await page.setViewportSize({ width: 390, height: 844 });

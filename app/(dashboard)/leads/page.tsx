@@ -3,26 +3,34 @@
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Plus, Search } from "lucide-react";
-import { Topbar } from "@/components/dashboard/Topbar";
+import { useQuery } from "@tanstack/react-query";
+import { Plus, Search, SearchX, UserRoundSearch } from "lucide-react";
+import { PageHeader, EmptyState, Skeleton, staggerStyle } from "@/components/ui/primitives";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Segmented } from "@/components/ui/segmented";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LeadFormDialog } from "@/components/leads/LeadFormDialog";
+import { LeadHoverCard } from "@/components/leads/LeadHoverCard";
 import { ScoreBadge } from "@/components/leads/ScoreBadge";
-import { useLeads, type Lead } from "@/lib/hooks/use-leads";
-import { formatCurrency, initials, priorityStyle, statusLabel, type Status } from "@/lib/format";
-import { Skeleton } from "@/components/ui/skeleton";
+import type { Lead } from "@/lib/hooks/use-leads";
+import type { FollowUpWithLead } from "@/lib/hooks/use-followups";
+import { q } from "@/lib/queries";
+import { formatCurrency, statusLabel, type Priority, type Status } from "@/lib/format";
+import { timeAgo } from "@/lib/time";
+import { cn } from "@/lib/utils";
 
-type StatusFilter = Status | "ALL";
+type StageFilter = Status | "ALL";
+type TierFilter = Priority | "ALL";
+type Sort = "score" | "value" | "newest" | "updated";
+
+const SORTS: Record<Sort, { label: string; fn: (a: Lead, b: Lead) => number }> = {
+  score: { label: "Highest score", fn: (a, b) => b.score - a.score },
+  value: { label: "Biggest deal", fn: (a, b) => b.value - a.value },
+  newest: { label: "Newest", fn: (a, b) => b.createdAt.localeCompare(a.createdAt) },
+  updated: { label: "Recently changed", fn: (a, b) => b.updatedAt.localeCompare(a.updatedAt) },
+};
+
+const ownerName = (l: Lead) => (l.assignedTo ? l.assignedTo.displayName?.trim() || l.assignedTo.email.split("@")[0] : null);
 
 /** Opens "Add a lead" when the URL has ?new=1 (sidebar button, command palette). */
 function NewLeadFromUrl() {
@@ -33,54 +41,78 @@ function NewLeadFromUrl() {
 }
 
 export default function LeadsPage() {
-  const { data: leads = [], isLoading } = useLeads();
+  const leadsQ = useQuery(q.leads());
+  const followQ = useQuery(q.followups());
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<StatusFilter>("ALL");
+  const [stage, setStage] = useState<StageFilter>("ALL");
+  const [tier, setTier] = useState<TierFilter>("ALL");
+  const [sort, setSort] = useState<Sort>("score");
+
+  const leads = useMemo(() => leadsQ.data ?? [], [leadsQ.data]);
+  const nextFollowUp = useMemo(() => {
+    const m = new Map<string, FollowUpWithLead>();
+    for (const f of followQ.data ?? []) {
+      if (f.done) continue;
+      const cur = m.get(f.leadId);
+      if (!cur || f.dueAt < cur.dueAt) m.set(f.leadId, f);
+    }
+    return m;
+  }, [followQ.data]);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return leads.filter((l) => {
-      const matchesQuery =
-        !q ||
-        l.name.toLowerCase().includes(q) ||
-        (l.company ?? "").toLowerCase().includes(q) ||
-        (l.email ?? "").toLowerCase().includes(q);
-      const matchesStatus = status === "ALL" || l.status === status;
-      return matchesQuery && matchesStatus;
-    });
-  }, [leads, query, status]);
+    const needle = query.trim().toLowerCase();
+    return leads
+      .filter(
+        (l) =>
+          (stage === "ALL" || l.status === stage) &&
+          (tier === "ALL" || l.priority === tier) &&
+          (!needle || `${l.name} ${l.company ?? ""} ${l.email ?? ""} ${l.title ?? ""}`.toLowerCase().includes(needle)),
+      )
+      .sort(SORTS[sort].fn);
+  }, [leads, query, stage, tier, sort]);
+
+  const filtering = query.trim() !== "" || stage !== "ALL" || tier !== "ALL";
+  function clear() {
+    setQuery("");
+    setStage("ALL");
+    setTier("ALL");
+  }
 
   return (
-    <>
+    <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8">
       <Suspense fallback={null}>
         <NewLeadFromUrl />
       </Suspense>
-      <Topbar
+      <PageHeader
+        eyebrow="Sell"
         title="Leads"
-        action={
+        description={leadsQ.isLoading ? "Loading leads…" : `${leads.length} leads, ${leads.filter((l) => l.priority === "HOT").length} of them Hot.`}
+        actions={
           <LeadFormDialog
             trigger={
-              <Button size="sm">
-                <Plus className="h-4 w-4" /> Add lead
+              <Button variant="primary">
+                <Plus aria-hidden /> Add a lead
               </Button>
             }
           />
         }
       />
-      <div className="flex-1 overflow-auto p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search leads by name, company, or email…"
-              className="pl-9"
-            />
-          </div>
-          <Select value={status} onValueChange={(v) => setStatus(v as StatusFilter)}>
-            <SelectTrigger className="w-full sm:w-44" aria-label="Filter by stage">
-              <SelectValue placeholder="All stages" />
+
+      <div className="mt-6 flex flex-col gap-3 lg:flex-row lg:items-center">
+        <label className="relative flex-1">
+          <span className="sr-only">Search leads</span>
+          <Search aria-hidden className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-fg-subtle" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by name, company, title or email"
+            className="input-field pl-8"
+          />
+        </label>
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={stage} onValueChange={(v) => setStage(v as StageFilter)}>
+            <SelectTrigger className="w-40" aria-label="Filter by stage">
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All stages</SelectItem>
@@ -91,84 +123,138 @@ export default function LeadsPage() {
               ))}
             </SelectContent>
           </Select>
-        </div>
-
-        <div className="mt-5 overflow-hidden rounded-xl border border-border bg-card">
-          {isLoading ? (
-            <div className="space-y-3 p-5">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-10 w-full" />
+          <Segmented
+            label="Tier"
+            value={tier}
+            onChange={setTier}
+            options={[
+              { value: "ALL", label: "All" },
+              { value: "HOT", label: "Hot" },
+              { value: "WARM", label: "Warm" },
+              { value: "COLD", label: "Cold" },
+            ]}
+          />
+          <Select value={sort} onValueChange={(v) => setSort(v as Sort)}>
+            <SelectTrigger className="w-44" aria-label="Sort leads">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(SORTS) as Sort[]).map((s) => (
+                <SelectItem key={s} value={s}>
+                  {SORTS[s].label}
+                </SelectItem>
               ))}
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="p-14 text-center">
-              <p className="text-[15px] font-600 text-foreground">
-                {leads.length === 0 ? "No leads yet" : "No leads match your filters"}
-              </p>
-              <p className="mt-1 text-[13px] text-muted-foreground">
-                {leads.length === 0
-                  ? "Add your first lead to start AI scoring."
-                  : "Try a different search or stage."}
-              </p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Lead</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Stage</TableHead>
-                  <TableHead className="hidden md:table-cell">Owner</TableHead>
-                  <TableHead className="text-right">Value</TableHead>
-                  <TableHead className="text-right">Score</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((lead) => (
-                  <LeadRow key={lead.id} lead={lead} />
-                ))}
-              </TableBody>
-            </Table>
-          )}
+            </SelectContent>
+          </Select>
         </div>
       </div>
-    </>
-  );
-}
 
-function LeadRow({ lead }: { lead: Lead }) {
-  const p = priorityStyle[lead.priority];
-  return (
-    <TableRow className="cursor-pointer">
-      <TableCell>
-        <Link href={`/leads/${lead.id}`} className="flex items-center gap-3">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback>{initials(lead.name)}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <p className="truncate text-[14px] font-600 text-foreground">{lead.name}</p>
-            <p className="truncate text-[12px] text-muted-foreground">
-              {lead.title ? `${lead.title} · ` : ""}
-              {lead.company ?? "—"}
-            </p>
+      <p aria-live="polite" className="mt-3 text-[13px] text-fg-muted">
+        {!leadsQ.isLoading && (filtering ? `Showing ${filtered.length} of ${leads.length} leads` : `${leads.length} leads`)}
+      </p>
+
+      {leadsQ.isLoading ? (
+        <div className="panel mt-3 space-y-2 p-4">
+          {Array.from({ length: 8 }, (_, i) => (
+            <Skeleton key={i} className="h-11" />
+          ))}
+        </div>
+      ) : leads.length === 0 ? (
+        <div className="panel mt-3">
+          <EmptyState
+            icon={<UserRoundSearch />}
+            title="No leads yet"
+            description="Add your first lead. LeadFlow books a follow-up for it and you can score it with AI from its profile."
+            action={
+              <LeadFormDialog
+                trigger={
+                  <Button variant="primary">
+                    <Plus aria-hidden /> Add a lead
+                  </Button>
+                }
+              />
+            }
+          />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="panel mt-3">
+          <EmptyState
+            icon={<SearchX />}
+            title="No leads match"
+            description="Try another name or company, or clear the filters."
+            action={<Button onClick={clear}>Clear filters</Button>}
+          />
+        </div>
+      ) : (
+        <>
+          {/* Table on wider screens */}
+          <div className="panel mt-3 hidden overflow-hidden md:block">
+            <table className="w-full text-[13.5px]">
+              <caption className="sr-only">Leads, sorted by {SORTS[sort].label.toLowerCase()}</caption>
+              <thead>
+                <tr className="border-b border-border bg-surface-2">
+                  {["Lead", "Stage", "Score", "Value", "Owner", "Next follow-up", "Last change"].map((h, i) => (
+                    <th key={h} scope="col" className={cn("eyebrow h-10 px-4 font-medium", i === 2 || i === 3 ? "text-right" : "text-left")}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="stagger">
+                {filtered.map((l, i) => {
+                  const next = nextFollowUp.get(l.id);
+                  const late = next && new Date(next.dueAt) < new Date();
+                  return (
+                    <tr key={l.id} style={staggerStyle(i)} className="border-b border-border transition-colors last:border-0 hover:bg-surface-2">
+                      <td className="max-w-[18rem] px-4 py-2.5">
+                        <div className="flex min-w-0 flex-col">
+                          <LeadHoverCard lead={l} />
+                          <span className="truncate text-[12.5px] text-fg-muted">{[l.title, l.company].filter(Boolean).join(" · ") || "No company"}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5 text-fg-muted">{statusLabel[l.status]}</td>
+                      <td className="px-4 py-2.5 text-right">
+                        <ScoreBadge score={l.score} priority={l.priority} size="sm" />
+                      </td>
+                      <td className="tabular px-4 py-2.5 text-right text-fg">{formatCurrency(l.value)}</td>
+                      <td className="px-4 py-2.5 text-fg-muted">{ownerName(l) ?? "Unassigned"}</td>
+                      <td className={cn("max-w-[14rem] truncate px-4 py-2.5", late ? "font-medium text-danger-text" : "text-fg-muted")}>
+                        {next ? `${next.title} · ${late ? "overdue" : timeAgo(next.dueAt)}` : "None"}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-2.5 text-fg-muted">{timeAgo(l.updatedAt)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-        </Link>
-      </TableCell>
-      <TableCell>
-        <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-600 ${p.className}`}>
-          {p.label}
-        </span>
-      </TableCell>
-      <TableCell className="text-[13px] text-muted-foreground">{statusLabel[lead.status]}</TableCell>
-      <TableCell className="hidden text-[13px] text-muted-foreground md:table-cell">
-        {lead.assignedTo ? (lead.assignedTo.displayName ?? lead.assignedTo.email) : "—"}
-      </TableCell>
-      <TableCell className="mono-data text-right text-[13px] font-600 text-foreground">
-        {formatCurrency(lead.value)}
-      </TableCell>
-      <TableCell className="text-right">
-        <ScoreBadge score={lead.score} size="sm" className="ml-auto" />
-      </TableCell>
-    </TableRow>
+
+          {/* Cards on phones */}
+          <ul className="stagger mt-3 space-y-2 md:hidden">
+            {filtered.map((l, i) => (
+              <li key={l.id} style={staggerStyle(i)} className="panel flex items-center gap-3 p-3">
+                <div className="min-w-0 flex-1">
+                  <p className="flex min-w-0 text-[14px]">
+                    <LeadHoverCard lead={l} />
+                  </p>
+                  <p className="truncate text-[12.5px] text-fg-muted">
+                    {statusLabel[l.status]} · {l.company ?? "No company"} · {formatCurrency(l.value)}
+                  </p>
+                </div>
+                <ScoreBadge score={l.score} priority={l.priority} size="sm" />
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      <p className="mt-6 text-[12.5px] text-fg-muted">
+        Tip: press <kbd className="rounded border border-border bg-surface-2 px-1 font-mono text-[11px]">Ctrl</kbd>{" "}
+        <kbd className="rounded border border-border bg-surface-2 px-1 font-mono text-[11px]">K</kbd> anywhere to jump to a lead.{" "}
+        <Link href="/pipeline" className="prose-link">
+          Open the pipeline
+        </Link>{" "}
+        to move deals between stages.
+      </p>
+    </div>
   );
 }

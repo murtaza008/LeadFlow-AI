@@ -189,6 +189,28 @@ export function useAddActivity(id: string) {
           body: JSON.stringify(input),
         }),
       ),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["leads", id] }),
+    // Optimistic: the entry shows on the timeline at once; the server copy replaces it.
+    onMutate: async (input) => {
+      await qc.cancelQueries({ queryKey: ["leads", id], exact: true });
+      const previous = qc.getQueryData<LeadDetail>(["leads", id]);
+      if (previous) {
+        const pending: Activity = {
+          id: `pending-${Date.now()}`,
+          type: input.type ?? "NOTE",
+          body: input.body,
+          createdAt: new Date().toISOString(),
+          createdBy: null,
+        };
+        qc.setQueryData<LeadDetail>(["leads", id], { ...previous, activities: [pending, ...previous.activities] });
+      }
+      return { previous };
+    },
+    onError: (_err, _input, context) => {
+      if (context?.previous) qc.setQueryData(["leads", id], context.previous);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["leads", id] });
+      qc.invalidateQueries({ queryKey: ["activity"] });
+    },
   });
 }
