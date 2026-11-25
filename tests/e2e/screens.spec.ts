@@ -147,3 +147,42 @@ for (const theme of themes) {
     await shot(page, "landing-mobile-story", theme);
   });
 }
+
+/** Today and Analytics review shots, with a KPI breakdown and a chart tooltip open. */
+for (const theme of themes) {
+  test(`data ${theme}`, async ({ page }) => {
+    test.skip(!want("data"));
+    await mockAi(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.emulateMedia({ colorScheme: theme });
+    await page.addInitScript((t) => localStorage.setItem("theme", t), theme);
+
+    await page.goto("/dashboard");
+    await expect(page.locator("main h1")).toBeVisible({ timeout: 30_000 });
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(400);
+    await shot(page, "today-mid-animation", theme);
+    await page.waitForTimeout(1200);
+    await shot(page, "today", theme, true);
+    await page.locator("dl").first().locator("[tabindex='0']").first().hover();
+    await page.waitForTimeout(700);
+    await shot(page, "today-kpi-hover", theme);
+
+    await page.goto("/analytics");
+    await expect(page.locator("main h1")).toBeVisible({ timeout: 30_000 });
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1500);
+    await shot(page, "analytics", theme, true);
+    const chart = page.getByRole("img", { name: /Leads added and deals won/ });
+    const box = (await chart.boundingBox())!;
+    await page.mouse.move(box.x + box.width * 0.7, box.y + box.height * 0.6);
+    await page.waitForTimeout(300);
+    await shot(page, "analytics-tooltip", theme);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/dashboard");
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(1500);
+    await shot(page, "today-mobile", theme, true);
+  });
+}

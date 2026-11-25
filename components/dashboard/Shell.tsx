@@ -85,7 +85,8 @@ export function Shell({ children }: { children: ReactNode }) {
   if (isLoading || !ws) return <ShellSkeleton />;
 
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
+    // The rail colour is painted on the whole first column, so it runs the full height of long pages.
+    <div className="min-h-dvh lg:grid lg:grid-cols-[248px_minmax(0,1fr)] lg:bg-[linear-gradient(to_right,var(--rail)_248px,transparent_248px)]">
       <a
         href="#main"
         className="sr-only z-50 rounded-md bg-surface px-3 py-2 text-sm font-medium text-fg shadow-md focus:not-sr-only focus:fixed focus:left-3 focus:top-3"

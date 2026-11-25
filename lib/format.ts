@@ -2,21 +2,20 @@ export function formatCurrency(value: number): string {
   return "$" + Math.round(value).toLocaleString("en-US");
 }
 
-export function scoreColorVar(score: number): string {
-  if (score >= 70) return "var(--color-mint)";
-  if (score >= 40) return "var(--color-amber)";
-  return "var(--color-danger)";
-}
-
 export type Priority = "HOT" | "WARM" | "COLD";
 
-export const priorityStyle: Record<Priority, { label: string; className: string }> = {
-  HOT: { label: "Hot", className: "bg-ember-dim text-ember" },
-  WARM: {
-    label: "Warm",
-    className: "bg-[color-mix(in_oklab,var(--color-amber)_15%,transparent)] text-amber",
-  },
-  COLD: { label: "Cold", className: "bg-muted text-muted-foreground" },
+/** Tier for a score when no AI tier is stored (same thresholds as the demo seed). */
+export function tierOf(score: number): Priority {
+  if (score >= 70) return "HOT";
+  if (score >= 40) return "WARM";
+  return "COLD";
+}
+
+/** Heat colours: hot = vermilion, warm = ochre (accent family), cold = slate. Never the danger colour. */
+export const priorityStyle: Record<Priority, { label: string; className: string; bar: string }> = {
+  HOT: { label: "Hot", className: "bg-hot-soft text-hot-text", bar: "bg-hot" },
+  WARM: { label: "Warm", className: "bg-accent-soft text-accent-text", bar: "bg-accent" },
+  COLD: { label: "Cold", className: "bg-cold-soft text-cold-text", bar: "bg-cold" },
 };
 
 export type Status = "NEW" | "CONTACTED" | "QUALIFIED" | "WON" | "LOST";

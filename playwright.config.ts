@@ -39,7 +39,7 @@ export default defineConfig({
     },
     {
       name: "app",
-      testMatch: /app\.spec\.ts|workflow\.spec\.ts|pages\.spec\.ts/,
+      testMatch: /app\.spec\.ts|data\.spec\.ts|workflow\.spec\.ts|pages\.spec\.ts/,
       dependencies: ["setup"],
       use: {
         ...devices["Desktop Chrome"],

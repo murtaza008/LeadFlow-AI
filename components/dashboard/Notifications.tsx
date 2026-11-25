@@ -11,7 +11,7 @@ import { getSeen, setSeen, subscribeSeen } from "@/lib/seen-store";
 import type { ActivityEventType } from "@/lib/activity";
 import { cn } from "@/lib/utils";
 
-const icons: Record<ActivityEventType, { icon: typeof Bell; tone: string }> = {
+export const activityIcons: Record<ActivityEventType, { icon: typeof Bell; tone: string }> = {
   "lead.won": { icon: Trophy, tone: "text-success-text" },
   "lead.stage": { icon: ArrowRightLeft, tone: "text-fg-muted" },
   "lead.scored": { icon: Gauge, tone: "text-accent-text" },
@@ -64,17 +64,22 @@ export function Notifications({ wsId }: { wsId: string }) {
             <span className="text-[12px] text-fg-muted">Last 14 days</span>
           </div>
           <M.Group aria-label="Recent events" className="max-h-[min(70vh,420px)] overflow-y-auto p-1.5 scrollbar-thin">
-            {isLoading && <p className="px-3 py-6 text-center text-sm text-fg-muted">Loading activity…</p>}
+            {/* Loading and empty states are disabled items, so the menu always has valid children. */}
+            {isLoading && (
+              <M.Item disabled className="block px-3 py-6 text-center text-sm text-fg-muted outline-none">
+                Loading activity…
+              </M.Item>
+            )}
             {!isLoading && events.length === 0 && (
-              <div className="px-4 py-8 text-center">
-                <p className="text-sm font-medium text-fg">Nothing new yet</p>
-                <p className="mt-1 text-[13px] text-fg-muted">
+              <M.Item disabled className="block px-4 py-8 text-center outline-none">
+                <span className="block text-sm font-medium text-fg">Nothing new yet</span>
+                <span className="mt-1 block text-[13px] text-fg-muted">
                   Teammates&rsquo; stage changes, AI scores, logged calls and overdue follow-ups show up here.
-                </p>
-              </div>
+                </span>
+              </M.Item>
             )}
             {events.map((e) => {
-              const { icon: Icon, tone } = icons[e.type];
+              const { icon: Icon, tone } = activityIcons[e.type];
               const isNew = e.at > seen;
               return (
                 <M.Item

@@ -34,6 +34,8 @@ export const sessionMock = {
 
 export const workspaceMock = {
   ForbiddenError,
+  /** The caller's workspace, or null when they have none (guard.member = false). */
+  getCurrentWorkspace: vi.fn(async () => (guard.member ? { id: "ws-1", name: "Test", role: guard.role } : null)),
   requireWorkspaceMember: vi.fn(async () => {
     if (!guard.member) throw new ForbiddenError("You do not have access to this workspace.");
     return guard.role;

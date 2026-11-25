@@ -6,18 +6,24 @@ import type { WorkspaceSummary } from "@/lib/workspace-summary";
 import type { Lead } from "@/lib/hooks/use-leads";
 import type { FollowUpWithLead } from "@/lib/hooks/use-followups";
 import type { Invite, Member } from "@/lib/hooks/use-team";
+import type { Analytics, RangeDays } from "@/lib/analytics-calc";
 
 /**
  * Shared query definitions. Pages, hooks and the shell use the same keys, so
  * hovering a nav item prefetches exactly the data the page will read.
  */
 
-export type AnalyticsResponse = {
-  funnel: { stage: Lead["status"]; label: string; count: number; value: number }[];
-  bySource: { source: string; count: number }[];
-  scoreDistribution: { bucket: string; count: number }[];
-  weekly: { week: string; created: number; won: number }[];
-  totals: { total: number; won: number; avgScore: number; winRate: number };
+/** GET /api/analytics, with Dates serialised to strings by JSON. */
+export type AnalyticsResponse = Analytics;
+
+export type FocusPick = {
+  leadId: string;
+  reason: string;
+  name: string;
+  company: string | null;
+  score: number;
+  priority: "HOT" | "WARM" | "COLD";
+  value: number;
 };
 
 /** Fetches JSON; on failure throws the API's own error message when it has one. */
@@ -41,10 +47,29 @@ export const q = {
       queryKey: ["followups"],
       queryFn: () => getJson<FollowUpWithLead[]>("/api/followups", "follow-ups"),
     }),
-  analytics: () =>
+  analytics: (days: RangeDays = 30) =>
     queryOptions({
-      queryKey: ["analytics"],
-      queryFn: () => getJson<AnalyticsResponse>("/api/analytics", "analytics"),
+      queryKey: ["analytics", days],
+      queryFn: () => getJson<AnalyticsResponse>(`/api/analytics?days=${days}`, "analytics"),
+    }),
+  /**
+   * Today's AI focus picks. The server reuses stored picks for 6 hours, so this
+   * rarely calls Gemini; never prefetched on hover for the same reason.
+   * A 501 means AI isn't configured: shown as a message, not an error.
+   */
+  focus: () =>
+    queryOptions({
+      queryKey: ["recommendations"],
+      queryFn: async (): Promise<{ picks: FocusPick[]; error?: string }> => {
+        const res = await fetch("/api/recommendations");
+        if (res.status === 501) return { picks: [], error: ((await res.json()) as { error: string }).error };
+        if (!res.ok) {
+          const body = (await res.json().catch(() => ({}))) as { error?: string };
+          throw new Error(body.error ?? "Could not load today's focus");
+        }
+        return res.json();
+      },
+      staleTime: 5 * 60_000,
     }),
   members: (wsId: string) =>
     queryOptions({

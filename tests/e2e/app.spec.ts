@@ -62,7 +62,8 @@ test("notifications list real workspace events", async ({ page }) => {
   const menu = page.getByRole("menu");
   await expect(menu.getByText("Activity", { exact: true })).toBeVisible();
   // Seeded teammates (Jordan, Priya) have logged calls and moved deals in the last two weeks.
-  await expect(menu.getByRole("menuitem").first()).toBeVisible({ timeout: 20_000 });
+  // A real event, not the disabled "Loading…" / "Nothing new yet" items.
+  await expect(menu.locator('[role="menuitem"]:not([data-disabled])').first()).toBeVisible({ timeout: 20_000 });
 });
 
 test("theme toggle switches to dark and back", async ({ page }) => {
