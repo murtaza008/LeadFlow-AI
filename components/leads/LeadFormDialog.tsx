@@ -2,15 +2,7 @@
 
 import { useState, type FormEvent, type ReactNode } from "react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,9 +47,20 @@ function formFrom(lead: Lead): typeof EMPTY_FORM {
 }
 
 /** Add a lead, or edit one when `lead` is given. */
-export function LeadFormDialog({ trigger, lead }: { trigger: ReactNode; lead?: Lead }) {
+export function LeadFormDialog({
+  trigger,
+  lead,
+  defaultOpen = false,
+  onClosed,
+}: {
+  /** Omit to open the dialog only through `defaultOpen` (e.g. from a URL). */
+  trigger?: ReactNode;
+  lead?: Lead;
+  defaultOpen?: boolean;
+  onClosed?: () => void;
+}) {
   const editing = Boolean(lead);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [form, setForm] = useState(EMPTY_FORM);
   const create = useCreateLead();
   const update = useUpdateLead();
@@ -72,6 +75,7 @@ export function LeadFormDialog({ trigger, lead }: { trigger: ReactNode; lead?: L
   function onOpenChange(next: boolean) {
     if (next) setForm(lead ? formFrom(lead) : EMPTY_FORM);
     setOpen(next);
+    if (!next) onClosed?.();
   }
 
   async function onSubmit(e: FormEvent) {
@@ -109,6 +113,7 @@ export function LeadFormDialog({ trigger, lead }: { trigger: ReactNode; lead?: L
         toast.success(`${form.name.trim()} added to leads`);
       }
       setOpen(false);
+      onClosed?.();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : editing ? "Could not update lead" : "Could not add lead");
     }
@@ -116,17 +121,17 @@ export function LeadFormDialog({ trigger, lead }: { trigger: ReactNode; lead?: L
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{editing ? "Edit lead" : "Add a lead"}</DialogTitle>
-          <DialogDescription>
-            {editing
-              ? "Re-score with AI after editing so the score reflects the new details."
-              : "A follow-up is scheduled automatically once the lead is created."}
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={onSubmit} className="space-y-4">
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
+      <DialogContent
+        className="max-w-xl"
+        title={editing ? "Edit lead" : "Add a lead"}
+        description={
+          editing
+            ? "Re-score with AI after editing so the score reflects the new details."
+            : "LeadFlow books a \"Reach out within 24h\" email follow-up as soon as you add it."
+        }
+      >
+        <form onSubmit={onSubmit} className="space-y-4 px-5 py-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
               <Label htmlFor="name">Name</Label>
@@ -188,8 +193,14 @@ export function LeadFormDialog({ trigger, lead }: { trigger: ReactNode; lead?: L
                 value={form.source}
                 onChange={(e) => set("source", e.target.value)}
                 placeholder="Referral"
+                list="lead-sources"
                 className="mt-1.5"
               />
+              <datalist id="lead-sources">
+                {["Website", "Referral", "LinkedIn", "Cold outreach", "Events"].map((o) => (
+                  <option key={o} value={o} />
+                ))}
+              </datalist>
             </div>
             <div>
               <Label htmlFor="value">Deal value ($)</Label>
@@ -205,9 +216,9 @@ export function LeadFormDialog({ trigger, lead }: { trigger: ReactNode; lead?: L
             </div>
             {members.length > 1 && (
               <div className="col-span-2">
-                <Label>Owner</Label>
+                <Label htmlFor="owner">Owner</Label>
                 <Select value={form.owner || undefined} onValueChange={(v) => set("owner", v)}>
-                  <SelectTrigger className="mt-1.5">
+                  <SelectTrigger id="owner" aria-label="Owner" className="mt-1.5">
                     <SelectValue placeholder="Assign to me" />
                   </SelectTrigger>
                   <SelectContent>
@@ -232,11 +243,14 @@ export function LeadFormDialog({ trigger, lead }: { trigger: ReactNode; lead?: L
               className="mt-1.5"
             />
           </div>
-          <DialogFooter>
-            <Button type="submit" disabled={pending}>
+          <div className="flex flex-col-reverse gap-2 border-t border-border pt-4 sm:flex-row sm:justify-end">
+            <DialogClose asChild>
+              <Button>Cancel</Button>
+            </DialogClose>
+            <Button type="submit" variant="primary" disabled={pending}>
               {editing ? (pending ? "Saving…" : "Save changes") : pending ? "Adding…" : "Add lead"}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

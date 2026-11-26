@@ -1,51 +1,60 @@
-import * as React from "react";
+import { forwardRef, type ButtonHTMLAttributes } from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-
 import { cn } from "@/lib/utils";
 
-const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-600 cursor-pointer transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+const primary =
+  "bg-accent text-accent-fg hover:bg-accent-hover shadow-[inset_0_1px_0_rgba(255,255,255,0.14),var(--shadow-xs)]";
+const secondary =
+  "bg-surface text-fg border border-border hover:border-border-strong hover:bg-surface-2 shadow-[inset_0_1px_0_var(--highlight),var(--shadow-xs)]";
+
+export const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium select-none " +
+    "transition-[background-color,border-color,color,box-shadow] duration-150 " +
+    "disabled:opacity-55 disabled:pointer-events-none aria-disabled:opacity-55 aria-disabled:pointer-events-none " +
+    "[&_svg]:shrink-0 [&_svg]:size-4",
   {
     variants: {
       variant: {
-        default:
-          "bg-primary text-primary-foreground hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-10px_var(--color-mint)]",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-border bg-card hover:border-graphite",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-muted",
-        link: "text-primary underline-offset-4 hover:underline",
-        dark: "bg-growth text-leaf hover:-translate-y-0.5",
+        primary,
+        secondary,
+        ghost: "text-fg-muted hover:text-fg hover:bg-sunken",
+        inverse: "bg-inverse text-inverse-fg hover:opacity-90",
+        danger: "bg-danger text-danger-fg hover:opacity-90",
+        "danger-ghost": "text-danger-text hover:bg-danger-soft",
+        link: "text-accent-text underline underline-offset-4 hover:decoration-2 px-0 h-auto",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-11 rounded-md px-6 text-[15px]",
-        icon: "h-9 w-9",
+        sm: "h-8 px-3 text-[13px] rounded-md",
+        md: "h-9 px-3.5 text-sm rounded-md",
+        lg: "h-11 px-5 text-[15px] rounded-lg",
+        icon: "size-9 rounded-md",
+        "icon-sm": "size-8 rounded-md",
       },
     },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
+    defaultVariants: { variant: "secondary", size: "md" },
   },
 );
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
-  asChild?: boolean;
-}
+export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
+  VariantProps<typeof buttonVariants> & { asChild?: boolean };
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button";
-    return (
-      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
-    );
-  },
-);
-Button.displayName = "Button";
-
-export { Button, buttonVariants };
+/**
+ * `data-press` opts the element into the global press feedback (a 0.97 scale
+ * run with the Web Animations API on pointer input only; see lib/press.ts).
+ */
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { className, variant, size, asChild = false, type, ...props },
+  ref,
+) {
+  const Comp = asChild ? Slot : "button";
+  return (
+    <Comp
+      ref={ref}
+      data-press=""
+      type={asChild ? undefined : (type ?? "button")}
+      className={cn(buttonVariants({ variant, size }), className)}
+      {...props}
+    />
+  );
+});

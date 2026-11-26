@@ -3,89 +3,72 @@ import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/session";
 import { getCurrentWorkspace, ForbiddenError } from "@/lib/workspace";
 import { handleApiError } from "@/lib/handle-error";
-import { statusLabel, type Status } from "@/lib/format";
+import { RANGES, computeAnalytics, type RangeDays } from "@/lib/analytics-calc";
 
-const STAGES: Status[] = ["NEW", "CONTACTED", "QUALIFIED", "WON", "LOST"];
-const SCORE_BUCKETS = [
-  { label: "0-20", min: 0, max: 20 },
-  { label: "21-40", min: 21, max: 40 },
-  { label: "41-60", min: 41, max: 60 },
-  { label: "61-80", min: 61, max: 80 },
-  { label: "81-100", min: 81, max: 100 },
-];
-
-function weekKey(date: Date): string {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  const day = d.getDay();
-  d.setDate(d.getDate() - day);
-  return d.toISOString().slice(0, 10);
-}
-
-export async function GET() {
+/**
+ * Pipeline analytics for the caller's workspace. `?days=30|90|365` sets the
+ * comparison window (default 30); anything else is a 400.
+ */
+export async function GET(request: Request) {
   try {
+    const param = new URL(request.url).searchParams.get("days");
+    const days = param === null ? 30 : Number(param);
+    if (!RANGES.includes(days as RangeDays)) {
+      return NextResponse.json({ error: `days must be one of ${RANGES.join(", ")}` }, { status: 400 });
+    }
+
     const userId = await requireUserId();
     const workspace = await getCurrentWorkspace(userId);
     if (!workspace) throw new ForbiddenError("No workspace yet.");
 
-    const leads = await prisma.lead.findMany({ where: { workspaceId: workspace.id } });
+    const [leads, closes] = await Promise.all([
+      prisma.lead.findMany({
+        where: { workspaceId: workspace.id },
+        select: {
+          id: true,
+          name: true,
+          company: true,
+          status: true,
+          value: true,
+          score: true,
+          source: true,
+          createdAt: true,
+          updatedAt: true,
+          assignedTo: { select: { id: true, displayName: true, email: true } },
+        },
+      }),
+      // When each deal was won or lost, from the timeline (more exact than "last edited").
+      prisma.activity.findMany({
+        where: {
+          workspaceId: workspace.id,
+          type: "STATUS_CHANGE",
+          OR: [{ body: { endsWith: "to WON." } }, { body: { endsWith: "to LOST." } }],
+        },
+        orderBy: { createdAt: "asc" },
+        select: { leadId: true, createdAt: true },
+      }),
+    ]);
 
-    const funnel = STAGES.map((stage) => {
-      const inStage = leads.filter((l) => l.status === stage);
-      return {
-        stage,
-        label: statusLabel[stage],
-        count: inStage.length,
-        value: inStage.reduce((s, l) => s + Number(l.value), 0),
-      };
-    });
+    const closedAt = new Map<string, Date>();
+    for (const c of closes) closedAt.set(c.leadId, c.createdAt); // ascending, so the latest wins
 
-    const sourceCounts = new Map<string, number>();
-    for (const l of leads) {
-      const key = l.source?.trim() || "Unknown";
-      sourceCounts.set(key, (sourceCounts.get(key) ?? 0) + 1);
-    }
-    const bySource = [...sourceCounts.entries()]
-      .map(([source, count]) => ({ source, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 8);
-
-    const scoreDistribution = SCORE_BUCKETS.map((b) => ({
-      bucket: b.label,
-      count: leads.filter((l) => l.score >= b.min && l.score <= b.max).length,
+    const rows = leads.map((l) => ({
+      id: l.id,
+      name: l.name,
+      company: l.company,
+      status: l.status,
+      value: Number(l.value),
+      score: l.score,
+      source: l.source,
+      createdAt: l.createdAt,
+      updatedAt: l.updatedAt,
+      closedAt: closedAt.get(l.id) ?? null,
+      owner: l.assignedTo
+        ? { id: l.assignedTo.id, name: l.assignedTo.displayName?.trim() || l.assignedTo.email.split("@")[0] }
+        : null,
     }));
 
-    const now = new Date();
-    const weeks: { week: string; created: number; won: number }[] = [];
-    for (let i = 7; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i * 7);
-      const key = weekKey(d);
-      weeks.push({ week: key, created: 0, won: 0 });
-    }
-    const weekIndex = new Map(weeks.map((w, i) => [w.week, i]));
-    for (const l of leads) {
-      const key = weekKey(l.createdAt);
-      const idx = weekIndex.get(key);
-      if (idx !== undefined) weeks[idx].created += 1;
-    }
-    for (const l of leads.filter((l) => l.status === "WON")) {
-      const key = weekKey(l.updatedAt);
-      const idx = weekIndex.get(key);
-      if (idx !== undefined) weeks[idx].won += 1;
-    }
-
-    const total = leads.length;
-    const won = leads.filter((l) => l.status === "WON").length;
-    const avgScore = total ? Math.round(leads.reduce((s, l) => s + l.score, 0) / total) : 0;
-
-    return NextResponse.json({
-      funnel,
-      bySource,
-      scoreDistribution,
-      weekly: weeks,
-      totals: { total, won, avgScore, winRate: total ? Math.round((won / total) * 100) : 0 },
-    });
+    return NextResponse.json(computeAnalytics(rows, new Date(), days));
   } catch (error) {
     return handleApiError(error);
   }

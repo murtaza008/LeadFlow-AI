@@ -1,30 +1,40 @@
-import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "./providers";
 import "./globals.css";
 
-const jakarta = Plus_Jakarta_Sans({
-  variable: "--font-jakarta",
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  display: "swap",
 });
 
-const inter = Inter({
-  variable: "--font-inter",
+const geist = Geist({
+  variable: "--font-geist",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "LeadFlow AI — Know which leads will close",
+  title: {
+    default: "LeadFlow AI — Know which leads to call today",
+    template: "%s · LeadFlow AI",
+  },
   description:
-    "AI-powered CRM that scores every lead, surfaces the ones ready to buy, and automates the follow-up — so your team only chases deals that actually close.",
+    "A CRM that scores every lead 0–100 with Google Gemini, explains the score, suggests the next step and creates the follow-ups for you.",
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f2f3f5" },
+    { media: "(prefers-color-scheme: dark)", color: "#0d0f12" },
+  ],
 };
 
 export default function RootLayout({
@@ -35,10 +45,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${jakarta.variable} ${inter.variable} ${jetbrainsMono.variable} antialiased`}
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
+      className={`${bricolage.variable} ${geist.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="bg-background text-foreground" suppressHydrationWarning>
+      {/* suppressHydrationWarning: next-themes sets the theme class before first paint, and
+          browser extensions inject attributes onto <body>; both are expected. */}
+      <body className="min-h-full bg-bg text-fg" suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>

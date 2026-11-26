@@ -1,56 +1,58 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "motion/react";
+import { useSession } from "next-auth/react";
+import { Logo } from "@/components/brand/Logo";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { buttonVariants } from "@/components/ui/button";
 
 const links = [
-  { label: "Product", href: "#product" },
-  { label: "Features", href: "#features" },
-  { label: "Pricing", href: "#pricing" },
-  { label: "Customers", href: "#customers" },
+  { href: "#how-it-works", label: "How it works" },
+  { href: "#features", label: "Try it" },
+  { href: "#inside", label: "Screens" },
+  { href: "#pricing", label: "Pricing" },
 ];
 
+/** Floating pill bar, inset from the page edges. Solid surface, no blur. */
 export function Nav() {
+  const { status } = useSession();
+  const authed = status === "authenticated";
+
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="sticky top-0 z-50 border-b border-border-dark bg-growth/80 backdrop-blur-md"
-    >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
-        <a href="#top" className="flex items-center gap-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-mint">
-            <span className="font-display text-[15px] font-800 text-growth">L</span>
-          </span>
-          <span className="font-display text-[16px] font-700 text-leaf">LeadFlow AI</span>
-        </a>
-        <nav className="hidden items-center gap-8 md:flex">
+    <header className="sticky top-3 z-40 px-3 sm:px-4">
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 rounded-full border border-border bg-surface pl-4 pr-2 shadow-[inset_0_1px_0_var(--highlight),var(--shadow-md)]">
+        <Link href="/" aria-label="LeadFlow AI home" className="rounded-md">
+          <Logo />
+        </Link>
+        <nav aria-label="Sections" className="hidden items-center lg:flex">
           {links.map((l) => (
             <a
               key={l.href}
               href={l.href}
-              className="text-[14px] font-500 text-fog transition-colors hover:text-leaf"
+              className="rounded-full px-3.5 py-1.5 text-[13.5px] text-fg-muted transition-colors hover:bg-sunken hover:text-fg"
             >
               {l.label}
             </a>
           ))}
         </nav>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/login"
-            className="hidden text-[14px] font-500 text-fog transition-colors hover:text-leaf sm:block"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/signup"
-            className="rounded-md bg-mint px-4 py-2 text-[14px] font-600 text-growth transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-8px_var(--color-mint)]"
-          >
-            Start free
-          </Link>
+        <div className="flex items-center gap-1.5">
+          <ThemeToggle className="hidden sm:inline-flex" />
+          {authed ? (
+            <Link href="/dashboard" data-press="" className={buttonVariants({ variant: "primary", size: "sm", className: "rounded-full" })}>
+              Open LeadFlow
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className={buttonVariants({ variant: "ghost", size: "sm", className: "hidden rounded-full sm:inline-flex" })}>
+                Sign in
+              </Link>
+              <Link href="/signup" data-press="" className={buttonVariants({ variant: "primary", size: "sm", className: "rounded-full" })}>
+                Start free
+              </Link>
+            </>
+          )}
         </div>
       </div>
-    </motion.header>
+    </header>
   );
 }

@@ -4,9 +4,9 @@ import { requireSessionUser } from "@/lib/session";
 import { getCurrentWorkspace, ForbiddenError } from "@/lib/workspace";
 import { handleApiError } from "@/lib/handle-error";
 import { recommendDailyFocus, AiNotConfiguredError } from "@/lib/gemini";
+import { FOCUS_CANDIDATES, FOCUS_TTL_HOURS, focusCandidates } from "@/lib/focus";
 
-/** Picks are reused for this long before Gemini is asked again. */
-const FOCUS_TTL_MS = 6 * 60 * 60 * 1000;
+const FOCUS_TTL_MS = FOCUS_TTL_HOURS * 60 * 60 * 1000;
 
 type Pick = { leadId: string; reason: string };
 
@@ -23,11 +23,14 @@ export async function GET() {
     const workspace = await getCurrentWorkspace(user.id);
     if (!workspace) throw new ForbiddenError("No workspace yet.");
 
-    const leads = await prisma.lead.findMany({
-      where: { workspaceId: workspace.id, status: { notIn: ["WON", "LOST"] } },
-      orderBy: { score: "desc" },
-      take: 25,
-    });
+    // The query narrows on the database; focusCandidates is the rule itself (shared with the landing demo).
+    const leads = focusCandidates(
+      await prisma.lead.findMany({
+        where: { workspaceId: workspace.id, status: { notIn: ["WON", "LOST"] } },
+        orderBy: { score: "desc" },
+        take: FOCUS_CANDIDATES,
+      }),
+    );
 
     if (leads.length === 0) return NextResponse.json({ picks: [] });
 

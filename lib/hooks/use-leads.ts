@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { q } from "@/lib/queries";
 
 export type Lead = {
   id: string;
@@ -36,12 +37,8 @@ async function json<T>(res: Response): Promise<T> {
   return res.json();
 }
 
-async function fetchLeads(): Promise<Lead[]> {
-  return json(await fetch("/api/leads"));
-}
-
 export function useLeads() {
-  return useQuery({ queryKey: ["leads"], queryFn: fetchLeads });
+  return useQuery(q.leads());
 }
 
 export type CreateLeadInput = {
@@ -75,6 +72,8 @@ function invalidateLeadViews(qc: ReturnType<typeof useQueryClient>) {
   qc.invalidateQueries({ queryKey: ["followups"] });
   qc.invalidateQueries({ queryKey: ["analytics"] });
   qc.invalidateQueries({ queryKey: ["recommendations"] });
+  qc.invalidateQueries({ queryKey: ["summary"] });
+  qc.invalidateQueries({ queryKey: ["activity"] });
 }
 
 export function useCreateLead() {
@@ -126,7 +125,7 @@ export function useDeleteLead() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => json(await fetch(`/api/leads/${id}`, { method: "DELETE" })),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["leads"] }),
+    onSuccess: () => invalidateLeadViews(qc),
   });
 }
 
@@ -190,6 +189,28 @@ export function useAddActivity(id: string) {
           body: JSON.stringify(input),
         }),
       ),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["leads", id] }),
+    // Optimistic: the entry shows on the timeline at once; the server copy replaces it.
+    onMutate: async (input) => {
+      await qc.cancelQueries({ queryKey: ["leads", id], exact: true });
+      const previous = qc.getQueryData<LeadDetail>(["leads", id]);
+      if (previous) {
+        const pending: Activity = {
+          id: `pending-${Date.now()}`,
+          type: input.type ?? "NOTE",
+          body: input.body,
+          createdAt: new Date().toISOString(),
+          createdBy: null,
+        };
+        qc.setQueryData<LeadDetail>(["leads", id], { ...previous, activities: [pending, ...previous.activities] });
+      }
+      return { previous };
+    },
+    onError: (_err, _input, context) => {
+      if (context?.previous) qc.setQueryData(["leads", id], context.previous);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["leads", id] });
+      qc.invalidateQueries({ queryKey: ["activity"] });
+    },
   });
 }

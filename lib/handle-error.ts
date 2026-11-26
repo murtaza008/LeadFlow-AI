@@ -4,6 +4,7 @@ import { UnauthorizedError } from "@/lib/session";
 import { ForbiddenError } from "@/lib/workspace";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { DemoLimitError } from "@/lib/demo";
+import { APICallError } from "ai";
 
 export function handleApiError(error: unknown) {
   if (error instanceof UnauthorizedError) {
@@ -23,6 +24,17 @@ export function handleApiError(error: unknown) {
   }
   if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  // Gemini errors: say what happened instead of a generic 500. Overload means
+  // both the main and the fallback model were busy; anything else (e.g. a 400)
+  // is a real error and is shown as such.
+  if (APICallError.isInstance(error)) {
+    const status = error.statusCode ?? 0;
+    if ([429, 500, 502, 503, 504].includes(status)) {
+      return NextResponse.json({ error: "Gemini is busy right now. Try again in a minute." }, { status: 503 });
+    }
+    console.error(error);
+    return NextResponse.json({ error: `Gemini could not handle this request (${status || "no status"}): ${error.message}` }, { status: 502 });
   }
   console.error(error);
   const message = error instanceof Error ? error.message : "Something went wrong";

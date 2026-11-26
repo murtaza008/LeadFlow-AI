@@ -1,11 +1,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { q } from "@/lib/queries";
 
 export type Member = {
   id: string;
   userId: string;
   role: "OWNER" | "ADMIN" | "MEMBER";
+  createdAt: string;
   user: { displayName: string | null; email: string; avatarUrl: string | null };
 };
 
@@ -14,6 +16,9 @@ export type Invite = {
   email: string;
   role: "OWNER" | "ADMIN" | "MEMBER";
   expiresAt: string;
+  createdAt: string;
+  /** The invite link token; only sent to Owners and Admins. */
+  token?: string;
 };
 
 async function json<T>(res: Response): Promise<T> {
@@ -25,19 +30,11 @@ async function json<T>(res: Response): Promise<T> {
 }
 
 export function useMembers(workspaceId: string | undefined) {
-  return useQuery({
-    queryKey: ["members", workspaceId],
-    queryFn: async () => json<Member[]>(await fetch(`/api/workspaces/${workspaceId}/members`)),
-    enabled: !!workspaceId,
-  });
+  return useQuery({ ...q.members(workspaceId ?? ""), enabled: !!workspaceId });
 }
 
 export function useInvites(workspaceId: string | undefined) {
-  return useQuery({
-    queryKey: ["invites", workspaceId],
-    queryFn: async () => json<Invite[]>(await fetch(`/api/workspaces/${workspaceId}/invites`)),
-    enabled: !!workspaceId,
-  });
+  return useQuery({ ...q.invites(workspaceId ?? ""), enabled: !!workspaceId });
 }
 
 export function useSendInvite(workspaceId: string | undefined) {
@@ -51,6 +48,9 @@ export function useSendInvite(workspaceId: string | undefined) {
           body: JSON.stringify(input),
         }),
       ),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["invites", workspaceId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["invites", workspaceId] });
+      qc.invalidateQueries({ queryKey: ["summary", workspaceId] });
+    },
   });
 }
